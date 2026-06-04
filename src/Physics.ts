@@ -6,7 +6,7 @@ export class Physics {
   static friction = 0.2;
   static restitution = 0.9;
   static rollingFriction = 0.003;
-
+  static rollingResistance = 0.002;
   public static update(ball: Ball, dt: number): void {
     const totalForce = this.getTotalForce(ball);
 
@@ -76,6 +76,63 @@ export class Physics {
     return new Vector3(0, 0, 0);
   }
 
+//   static getTorque(ball: Ball): Vector3 {
+//     ////
+//     const slip = this.getSlipVector(ball);
+// const friction = this.getFriction(ball);
+//     if (slip.length() < 0.0001) {
+//       return new Vector3(0, 0, 0);
+//     }
+//     ////
+    
+
+//     return new Vector3(friction.y * ball.radius, -friction.x * ball.radius, 0);
+//   }
+
+static getTorque(ball: Ball): Vector3 {
+  const slip = this.getSlipVector(ball);
+  const friction = this.getFriction(ball);
+
+  let torque = new Vector3(
+    friction.y * ball.radius,
+    -friction.x * ball.radius,
+    0
+  );
+
+  // 🔥 NEW: rolling resistance (even when slip = 0)
+  const omega = ball.angularVelocity;
+  const omegaMag = omega.length();
+
+  if (omegaMag > 1e-6) {
+    const normalForce = ball.mass * Physics.gravity;
+    const magnitude =
+      Physics.rollingResistance * normalForce * ball.radius;
+
+    const opp = omega.clone().multiplyScalar(-1 / omegaMag);
+
+    const rollingTorque = opp.multiplyScalar(magnitude);
+
+    torque = torque.add(rollingTorque);
+  }
+
+  return torque;
+}
+
+  static getSlipVector(ball: Ball): Vector3 {
+    const omegaCrossR = new Vector3(
+      ball.angularVelocity.y * ball.radius,
+      -ball.angularVelocity.x * ball.radius,
+      0,
+    );
+
+    const slip = ball.velocity.subtract(omegaCrossR);
+
+    if (slip.length() < 0.01) {
+      return new Vector3(0,0,0);
+    }
+
+    return slip;
+  }
   static forceToAcceleration(force: Vector3, mass: number): Vector3 {
     return force.multiplyScalar(1 / mass);
   }
@@ -90,121 +147,7 @@ export class Physics {
     ball.position = new Vector3(ball.position.x, ball.position.y, ball.radius);
   }
 
-  // static resolveWallCollision(ball: Ball): void {
-  //   const halfX = 2.84 / 2;
-  //   const halfY = 1.42 / 2;
-  //   const r = ball.radius;
-
-  //   if (ball.position.x + r > halfX) {
-  //     ball.position = new Vector3(halfX - r, ball.position.y, ball.position.z);
-  //     ball.velocity = new Vector3(-ball.velocity.x, ball.velocity.y, ball.velocity.z);
-  //   }
-
-  //   if (ball.position.x - r < -halfX) {
-  //     ball.position = new Vector3(-halfX + r, ball.position.y, ball.position.z);
-  //     ball.velocity = new Vector3(-ball.velocity.x, ball.velocity.y, ball.velocity.z);
-  //   }
-
-  //   if (ball.position.y + r > halfY) {
-  //     ball.position = new Vector3(ball.position.x, halfY - r, ball.position.z);
-  //     ball.velocity = new Vector3(ball.velocity.x, -ball.velocity.y, ball.velocity.z);
-  //   }
-
-  //   if (ball.position.y - r < -halfY) {
-  //     ball.position = new Vector3(ball.position.x, -halfY + r, ball.position.z);
-  //     ball.velocity = new Vector3(ball.velocity.x, -ball.velocity.y, ball.velocity.z);
-  //   }
-  // }
-  //   static resolveWallCollision(ball: Ball): void {
-  //     const halfX = 2.84 / 2;
-  //     const halfY = 1.42 / 2;
-  //     const r = ball.radius;
-
-  //     const e = Physics.restitution;
-  //     const wallFriction = 0.15;
-
-  //     const applyWallImpulse = (normal: Vector3, overlap: number) => {
-
-  //       ball.position = ball.position.add(normal.clone().multiplyScalar(overlap));
-
-  //       const rContact = normal.clone().multiplyScalar(-r);
-
-  //       const crossZ = (omegaZ: number, vec: Vector3) => new Vector3(-omegaZ * vec.y, omegaZ * vec.x, 0);
-
-  //       const vContact = ball.velocity.clone().add(crossZ(ball.angularVelocity.z, rContact));
-  //       const velAlongNormal = (vContact.x * normal.x) + (vContact.y * normal.y);
-
-  //       if (velAlongNormal > 0) return;
-
-  //       const invMass = 1 / ball.mass;
-  //       let jN = -(1 + e) * velAlongNormal;
-  //       jN /= invMass;
-
-  //       const impulseNormal = normal.clone().multiplyScalar(jN);
-
-  //       let tangent = vContact.clone().subtract(normal.clone().multiplyScalar(velAlongNormal));
-  //       const tangentLen = tangent.length();
-  //       let impulseTangent = new Vector3(0, 0, 0);
-
-  //       if (tangentLen > 0.0001) {
-  //         tangent = tangent.multiplyScalar(1 / tangentLen);
-  //         const velAlongTangent = (vContact.x * tangent.x) + (vContact.y * tangent.y);
-
-  //         const rCrossT = rContact.x * tangent.y - rContact.y * tangent.x;
-
-  //         let jT = -velAlongTangent;
-  //         jT /= invMass + (rCrossT * rCrossT) / ball.inertia;
-
-  //         const maxFriction = Math.abs(jN) * wallFriction;
-  //         if (Math.abs(jT) > maxFriction) {
-  //           jT = (jT > 0 ? 1 : -1) * maxFriction;
-  //         }
-
-  //         impulseTangent = tangent.clone().multiplyScalar(jT);
-  //       }
-
-  //       const totalImpulse = impulseNormal.add(impulseTangent);
-
-  //       ball.velocity = ball.velocity.add(totalImpulse.clone().multiplyScalar(invMass));
-
-  // if (Math.abs(normal.x) > 0.001) {
-  //   ball.angularVelocity = new Vector3(
-  //     ball.angularVelocity.x,
-  //     -ball.angularVelocity.y,
-  //     ball.angularVelocity.z
-  //   );
-  // }
-
-  // if (Math.abs(normal.y) > 0.001) {
-  //   ball.angularVelocity = new Vector3(
-  //     -ball.angularVelocity.x,
-  //     ball.angularVelocity.y,
-  //     ball.angularVelocity.z
-  //   );
-  // }
-
-  //       const torqueImpulse = rContact.x * impulseTangent.y - rContact.y * impulseTangent.x;
-  //       ball.angularVelocity = new Vector3(
-  //         ball.angularVelocity.x,
-  //         ball.angularVelocity.y,
-  //         ball.angularVelocity.z + (torqueImpulse / ball.inertia)
-  //       );
-  //     };
-
-  //     if (ball.position.x + r > halfX) {
-  //       applyWallImpulse(new Vector3(-1, 0, 0), (ball.position.x + r) - halfX);
-  //     }
-  //     if (ball.position.x - r < -halfX) {
-  //       applyWallImpulse(new Vector3(1, 0, 0), (-halfX) - (ball.position.x - r));
-  //     }
-
-  //     if (ball.position.y + r > halfY) {
-  //       applyWallImpulse(new Vector3(0, -1, 0), (ball.position.y + r) - halfY);
-  //     }
-  //     if (ball.position.y - r < -halfY) {
-  //       applyWallImpulse(new Vector3(0, 1, 0), (-halfY) - (ball.position.y - r));
-  //     }
-  //   }
+ 
   static resolveWallCollision(ball: Ball): void {
     const halfX = 2.84 / 2;
     const halfY = 1.42 / 2;
@@ -317,13 +260,12 @@ export class Physics {
     const crossZ = (omegaZ: number, r: Vector3) =>
       new Vector3(-omegaZ * r.y, omegaZ * r.x, 0);
 
-    const vA_contact = a.velocity.clone().add(crossZ(a.angularVelocity.z, rA));
-    const vB_contact = b.velocity.clone().add(crossZ(b.angularVelocity.z, rB));
-
+   const vA_contact = a.velocity.clone().add(a.angularVelocity.clone().cross(rA));
+const vB_contact = b.velocity.clone().add(b.angularVelocity.clone().cross(rB));
     const relVel = vA_contact.clone().subtract(vB_contact);
     const velAlongNormal = relVel.x * normal.x + relVel.y * normal.y;
 
-if (velAlongNormal > 0) return;//////////////////////////////
+    if (velAlongNormal < 0) return; //////////////////////////////
     const e = Physics.restitution;
     const ballFriction = 0.05;
 
@@ -402,11 +344,6 @@ if (velAlongNormal > 0) return;//////////////////////////////
     }
   }
 
-  static getTorque(ball: Ball): Vector3 {
-    const friction = this.getFriction(ball);
-
-    return new Vector3(friction.y * ball.radius, -friction.x * ball.radius, 0);
-  }
   static torqueToAngularAcceleration(
     torque: Vector3,
     inertia: number,
@@ -414,97 +351,40 @@ if (velAlongNormal > 0) return;//////////////////////////////
     return torque.multiplyScalar(1 / inertia);
   }
 
-  // static updateAngularVelocity(
-  //   ball: Ball,
-  //   angularAcceleration: Vector3,
-  //   dt: number
-  // ): void {
-  //   const slip = this.getSlipVector(ball);
-  //   const slipSpeed = slip.length();
+  
 
-  //   if (slipSpeed > 0.05) {
-  //     ball.angularVelocity = ball.angularVelocity.add(
-  //       angularAcceleration.multiplyScalar(dt)
-  //     );
-  //     return;
-  //   }
+  static updateAngularVelocity(
+    ball: Ball,
+    angularAcceleration: Vector3,
+    dt: number,
+  ): void {
+    ball.angularVelocity = ball.angularVelocity.add(
+      angularAcceleration.multiplyScalar(dt),
+    );
 
-  //   const v = ball.velocity.length();
+    const vSpeed = ball.velocity.length();
+    const slipSpeed = this.getSlipVector(ball).length();
 
-  //   if (v < 0.001) {
-  //     ball.angularVelocity = new Vector3(0, 0, 0);
-  //     return;
-  //   }
+    // إيقاف نهائي عند التوقف شبه التام
+    if (vSpeed < 0.0005 && slipSpeed < 0.0005) {
+      ball.velocity = new Vector3(0, 0, 0);
+      ball.angularVelocity = new Vector3(0, 0, 0);
+      return;
+    }
 
-  //   const omega = v / ball.radius;
-
-  //   const dir = ball.velocity.clone().normalize();
-
-  //   ball.angularVelocity = new Vector3(
-  //     -dir.y * omega,
-  //     dir.x * omega,
-  //     0
-  //   );
-  // }
-
-  // ================= UTIL =================
-  // static updateAngularVelocity(
-  //   ball: Ball,
-  //   angularAcceleration: Vector3,
-  //   dt: number,
-  // ): void {
-  //   ball.angularVelocity = ball.angularVelocity.add(
-  //     angularAcceleration.multiplyScalar(dt),
-  //   );
-
-  //   const vSpeed = ball.velocity.length();
-  //   const slipSpeed = this.getSlipVector(ball).length();
-
-  //   // إطفاء عددي فقط عند التوقف شبه التام
-  //   if (vSpeed < 0.0005 && slipSpeed < 0.0005) {
-  //     ball.velocity = new Vector3(0, 0, 0);
-  //     ball.angularVelocity = new Vector3(0, 0, 0);
-  //   }
-  // }
-
-static updateAngularVelocity(
-  ball: Ball,
-  angularAcceleration: Vector3,
-  dt: number,
-): void {
-  ball.angularVelocity = ball.angularVelocity.add(
-    angularAcceleration.multiplyScalar(dt),
-  );
-
-  const vSpeed = ball.velocity.length();
-  const slipSpeed = this.getSlipVector(ball).length();
-
-  // إيقاف نهائي عند التوقف شبه التام
-  if (vSpeed < 0.0005 && slipSpeed < 0.0005) {
-    ball.velocity = new Vector3(0, 0, 0);
+    // إذا كانت السرعة الخطية شبه معدومة (الكرة ساكنة تقريباً) والسرعة الزاوية صغيرة جداً، أوقف الدوران
+if (ball.velocity.length() < 0.01 && ball.angularVelocity.length() < 0.05) {
     ball.angularVelocity = new Vector3(0, 0, 0);
-    return;
-  }
-
-  // إذا صار قريب من rolling، نثبت العلاقة الصحيحة بين v و ω
-  if (slipSpeed < 0.001 && vSpeed > 0.0005) {
-    ball.angularVelocity = new Vector3(
-      -ball.velocity.y / ball.radius,
-      ball.velocity.x / ball.radius,
-      0,
-    );
-  }
 }
-
-  static getSlipVector(ball: Ball): Vector3 {
-    const v = ball.velocity;
-
-    const omegaCrossR = new Vector3(
-      ball.angularVelocity.y * ball.radius,
-      -ball.angularVelocity.x * ball.radius,
-      0,
-    );
-
-    return v.clone().subtract(omegaCrossR);
+    // إذا صار قريب من rolling، نثبت العلاقة الصحيحة بين v و ω
+    // if (slipSpeed < 0.001 && vSpeed > 0.0005) {
+    //   ball.angularVelocity = new Vector3(
+    //     -ball.velocity.y / ball.radius,
+    //     ball.velocity.x / ball.radius,
+    //     0,
+    //   );
+    // }
   }
+
+  
 }

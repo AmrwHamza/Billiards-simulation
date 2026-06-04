@@ -36,7 +36,7 @@ controls.dampingFactor = 0.05;
 const balls: Ball[] = [];
 
 const ball = new Ball(-1, 0, 0.028575, 0.17, 0xff0000);
-ball.velocity.set(0.7,0.7, 0);   
+ball.velocity.set(4,3, 0);   
 balls.push(ball);
 scene.add(ball.mesh);
 
@@ -49,18 +49,19 @@ scene.add(ball.mesh);
 // ball3.velocity.set(1.7,-0.7, 0);
 // balls.push(ball3);
 // scene.add(ball3.mesh);
-// for (let i = 0; i < 15; i++) {
-//   const b = new Ball(
-//     0.5 + i * 0.06,
-//    -0.5 + i * 0.06,
-//     0.028575,
-//     0.17,
-//     0xffff00
-//   );
 
-//   balls.push(b);
-//   scene.add(b.mesh);
-// }
+for (let i = 0; i < 15; i++) {
+  const b = new Ball(
+    0.5 + i * 0.06,
+   -0.5 + i * 0.06,
+    0.028575,
+    0.17,
+    0xffff00
+  );
+
+  balls.push(b);
+  scene.add(b.mesh);
+}
 let lastTime = performance.now();
 
 const debugVisualizer = new PhysicsVisualizer(scene);
@@ -107,13 +108,23 @@ for (let step = 0; step < 4; step++) {
 // );
 const slip = Physics.getSlipVector(ball);
 
+// console.log(
+//   "vx", ball.velocity.x,
+//   "vy", ball.velocity.y,
+//   "wx", ball.angularVelocity.x,
+//   "wy", ball.angularVelocity.y,
+//   "wz", ball.angularVelocity.z,
+//   "slipx", slip.x,
+//   "slipy", slip.y
+// );
+
 console.log(
   "v=",
-  ball.velocity.length().toFixed(3),
+  ball.velocity.length(),
   "omegaR=",
-  (ball.angularVelocity.length() * ball.radius).toFixed(3),
+  ball.angularVelocity.length() * ball.radius,
   "slip=",
-  slip.length().toFixed(5)
+  Physics.getSlipVector(ball).length()
 );
 // console.log("Angular Velocity Vector:", ball.angularVelocity);
   controls.update();
