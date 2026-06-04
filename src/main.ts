@@ -36,7 +36,7 @@ controls.dampingFactor = 0.05;
 const balls: Ball[] = [];
 
 const ball = new Ball(-1, 0, 0.028575, 0.17, 0xff0000);
-ball.velocity.set(0.1,0.1, 0);   
+ball.velocity.set(0.7,0.7, 0);   
 balls.push(ball);
 scene.add(ball.mesh);
 
@@ -73,12 +73,13 @@ function animate(time: number) {
 // );
 
 //   lastTime = time;
-for(let step = 0; step < 4; step++) {
+for (let step = 0; step < 4; step++) {
 
-        for (const ball of balls) {
-            ball.update(FIXED_DT);
-        }}
-for (let i = 0; i < balls.length; i++) {
+  for (const ball of balls) {
+    ball.update(FIXED_DT);
+  }
+
+  for (let i = 0; i < balls.length; i++) {
     for (let j = i + 1; j < balls.length; j++) {
       Physics.resolveBallCollision(
         balls[i],
@@ -86,18 +87,35 @@ for (let i = 0; i < balls.length; i++) {
       );
     }
   }
-const slip = Physics.getSlipVector(ball);
+}
 
-const v = ball.velocity.length();
-const w = ball.angularVelocity.length();
-
+// const v = ball.velocity.length();
+// const w = ball.angularVelocity.length();
+// console.log(
+//   "v",
+//   v.x,
+//   v.y,
+//   "omega",
+//   w.x,
+//   w.y,
+//   w.z
+// );
 // console.log(
 //    "v=", v,
 //    "wR=", w * ball.radius,
 //    "diff=", v - w * ball.radius
 // );
+const slip = Physics.getSlipVector(ball);
 
-console.log("Angular Velocity Vector:", ball.angularVelocity);
+console.log(
+  "v=",
+  ball.velocity.length().toFixed(3),
+  "omegaR=",
+  (ball.angularVelocity.length() * ball.radius).toFixed(3),
+  "slip=",
+  slip.length().toFixed(5)
+);
+// console.log("Angular Velocity Vector:", ball.angularVelocity);
   controls.update();
 debugVisualizer.update(ball);
   renderer.render(scene, camera);

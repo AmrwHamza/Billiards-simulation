@@ -100,22 +100,39 @@ export class Ball {
     this.mesh.position.set(this.position.x, this.position.z, this.position.y);
   }
 
- private updateRotation(dt: number): void {
-  const angle = this.angularVelocity.length() * dt;
-  if (angle < 0.0001) return; 
+//  private updateRotation(dt: number): void {
+//   const angle = this.angularVelocity.length() * dt;
+//   if (angle < 0.0001) return; 
 
   
+//   const axis = new THREE.Vector3(
+//     this.angularVelocity.x,
+//     this.angularVelocity.z,
+//     this.angularVelocity.y
+//   ).normalize();
+
+
+//   const deltaRotation = new THREE.Quaternion();
+//   deltaRotation.setFromAxisAngle(axis, -angle); 
+
+
+//   this.mesh.quaternion.multiplyQuaternions(deltaRotation, this.mesh.quaternion);
+// }
+
+private updateRotation(dt: number): void {
+  const w = this.angularVelocity.length();
+  if (w < 0.0001) return;
+
   const axis = new THREE.Vector3(
     this.angularVelocity.x,
     this.angularVelocity.z,
     this.angularVelocity.y
   ).normalize();
 
-
   const deltaRotation = new THREE.Quaternion();
-  deltaRotation.setFromAxisAngle(axis, -angle); 
+  deltaRotation.setFromAxisAngle(axis, -w * dt);
 
-
-  this.mesh.quaternion.multiplyQuaternions(deltaRotation, this.mesh.quaternion);
+  this.mesh.quaternion.premultiply(deltaRotation);
 }
+
 }
