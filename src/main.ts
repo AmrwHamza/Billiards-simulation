@@ -15,7 +15,7 @@ const camera = new THREE.PerspectiveCamera(
   1000,
 );
 
-camera.position.set(0,3, 0);
+camera.position.set(0,2, 1.5);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -36,7 +36,7 @@ controls.dampingFactor = 0.05;
 const balls: Ball[] = [];
 
 const ball = new Ball(-1, 0, 0.028575, 0.17, 0xff0000);
-ball.velocity.set(4,3, 0);   
+ball.velocity.set(0,1, 0);   
 balls.push(ball);
 scene.add(ball.mesh);
 
@@ -64,7 +64,7 @@ for (let i = 0; i < 15; i++) {
 }
 let lastTime = performance.now();
 
-const debugVisualizer = new PhysicsVisualizer(scene);
+// const debugVisualizer = new PhysicsVisualizer(scene);
 
 const FIXED_DT = 1 / 240;
 function animate(time: number) {
@@ -119,16 +119,18 @@ const slip = Physics.getSlipVector(ball);
 // );
 
 console.log(
-  "v=",
-  ball.velocity.length(),
+  "v=", ball.velocity.length(),
   "omegaR=",
-  ball.angularVelocity.length() * ball.radius,
+  Math.sqrt(
+    ball.angularVelocity.x**2 +
+    ball.angularVelocity.y**2
+  ) * ball.radius,
   "slip=",
   Physics.getSlipVector(ball).length()
 );
 // console.log("Angular Velocity Vector:", ball.angularVelocity);
   controls.update();
-debugVisualizer.update(ball);
+// debugVisualizer.update(ball);
   renderer.render(scene, camera);
 
   requestAnimationFrame(animate);

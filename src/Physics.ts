@@ -7,6 +7,7 @@ export class Physics {
   static restitution = 0.9;
   static rollingFriction = 0.003;
   static rollingResistance = 0.002;
+  static spinFriction = 0.005;   // معامل احتكاك الدوران حول العمودي
   public static update(ball: Ball, dt: number): void {
     const totalForce = this.getTotalForce(ball);
 
@@ -61,17 +62,17 @@ export class Physics {
     const slipSpeed = slip.length();
     const vSpeed = ball.velocity.length();
 
-    if (slipSpeed > 0.001) {
+    if (slipSpeed > 1e-6) {
       const direction = slip.normalize();
       const magnitude = this.friction * ball.mass * Physics.gravity;
       return direction.multiplyScalar(-magnitude);
     }
 
-    if (vSpeed > 0.001) {
-      const direction = ball.velocity.clone().normalize();
-      const magnitude = this.rollingFriction * ball.mass * Physics.gravity;
-      return direction.multiplyScalar(-magnitude);
-    }
+    // if (vSpeed > 0.01) {
+    //   const direction = ball.velocity.clone().normalize();
+    //   const magnitude = this.rollingFriction * ball.mass * Physics.gravity;
+    //   return direction.multiplyScalar(-magnitude);
+    // }
 
     return new Vector3(0, 0, 0);
   }
@@ -114,7 +115,12 @@ static getTorque(ball: Ball): Vector3 {
 
     torque = torque.add(rollingTorque);
   }
-
+ const spinTorque = new Vector3(
+    0,
+    0,
+    -Physics.spinFriction * ball.mass * Physics.gravity * ball.radius * Math.sign(ball.angularVelocity.z)
+  );
+  torque = torque.add(spinTorque);
   return torque;
 }
 
