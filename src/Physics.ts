@@ -5,9 +5,9 @@ export class Physics {
   static gravity = 9.81;
   static friction = 0.2;
   static restitution = 0.9;
-  static rollingFriction = 0.003;
-  static rollingResistance = 0.002;
-  static spinFriction = 0.005;   // معامل احتكاك الدوران حول العمودي
+  
+  static rollingResistance = 0.01;
+  static spinFriction = 0.008;   // معامل احتكاك الدوران حول العمودي
   public static update(ball: Ball, dt: number): void {
     const totalForce = this.getTotalForce(ball);
 
@@ -40,6 +40,7 @@ export class Physics {
     }
     // ball.angularVelocity.z = 0;
   }
+
 
   static getTotalForce(ball: Ball): Vector3 {
     const gravity = this.getGravity(ball);
@@ -77,18 +78,7 @@ export class Physics {
     return new Vector3(0, 0, 0);
   }
 
-//   static getTorque(ball: Ball): Vector3 {
-//     ////
-//     const slip = this.getSlipVector(ball);
-// const friction = this.getFriction(ball);
-//     if (slip.length() < 0.0001) {
-//       return new Vector3(0, 0, 0);
-//     }
-//     ////
-    
 
-//     return new Vector3(friction.y * ball.radius, -friction.x * ball.radius, 0);
-//   }
 
 static getTorque(ball: Ball): Vector3 {
   const slip = this.getSlipVector(ball);
@@ -102,36 +92,83 @@ static getTorque(ball: Ball): Vector3 {
 
   // 🔥 NEW: rolling resistance (even when slip = 0)
   const omega = ball.angularVelocity;
-  const omegaMag = omega.length();
+  const omegaxy= new Vector3(omega.x,omega.y,0);
+  
+  const omegaMag = omegaxy.length();
 
   if (omegaMag > 1e-6) {
     const normalForce = ball.mass * Physics.gravity;
-    const magnitude =
+    const magnitude = (2 / 5) *
       Physics.rollingResistance * normalForce * ball.radius;
 
-    const opp = omega.clone().multiplyScalar(-1 / omegaMag);
+    const opp = omegaxy.clone().multiplyScalar(-1 / omegaMag);
 
     const rollingTorque = opp.multiplyScalar(magnitude);
 
     torque = torque.add(rollingTorque);
   }
- const spinTorque = new Vector3(
-    0,
-    0,
-    -Physics.spinFriction * ball.mass * Physics.gravity * ball.radius * Math.sign(ball.angularVelocity.z)
-  );
+const spinOmega = new Vector3(
+  0,
+  0,
+  ball.angularVelocity.z
+);
+
+let spinTorque = new Vector3();
+
+if (spinOmega.length() > 0) {
+  spinTorque = spinOmega
+    .normalize()
+    .multiplyScalar(
+      -Physics.spinFriction *
+      ball.mass *
+      Physics.gravity *
+      ball.radius
+    );
+}
   torque = torque.add(spinTorque);
   return torque;
 }
+// static getTorque(ball: Ball): Vector3 {
+//   const slip = this.getSlipVector(ball);
+//   const friction = this.getFriction(ball);
 
+//   let torque = new Vector3(
+//     friction.y * ball.radius,
+//     -friction.x * ball.radius,
+//     0
+//   );
+
+//   // 🔥 NEW: rolling resistance (even when slip = 0)
+//   const omega = ball.angularVelocity;
+//   const omegaMag = omega.length();
+
+//   if (omegaMag > 1e-6) {
+//     const normalForce = ball.mass * Physics.gravity;
+//     const magnitude =
+//       Physics.rollingResistance * normalForce * ball.radius;
+
+//     const opp = omega.clone().multiplyScalar(-1 / omegaMag);
+
+//     const rollingTorque = opp.multiplyScalar(magnitude);
+
+//     torque = torque.add(rollingTorque);
+//   }
+//  const spinTorque = new Vector3(
+//     0,
+//     0,
+//     -Physics.spinFriction * ball.mass * Physics.gravity * ball.radius * Math.sign(ball.angularVelocity.z)
+//   );
+//   torque = torque.add(spinTorque);
+//   return torque;
+// }
   static getSlipVector(ball: Ball): Vector3 {
     const omegaCrossR = new Vector3(
-      ball.angularVelocity.y * ball.radius,
-      -ball.angularVelocity.x * ball.radius,
-      0,
+      -ball.angularVelocity.y * ball.radius,
+      ball.angularVelocity.x * ball.radius,
+    0 ,
     );
 
-    const slip = ball.velocity.subtract(omegaCrossR);
+    const slip = ball.velocity.add(omegaCrossR);
 
     if (slip.length() < 0.01) {
       return new Vector3(0,0,0);

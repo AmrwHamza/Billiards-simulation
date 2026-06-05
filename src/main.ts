@@ -15,7 +15,7 @@ const camera = new THREE.PerspectiveCamera(
   1000,
 );
 
-camera.position.set(0,2, 1.5);
+camera.position.set(0,3, 1.5);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -35,8 +35,10 @@ controls.dampingFactor = 0.05;
 
 const balls: Ball[] = [];
 
-const ball = new Ball(-1, 0, 0.028575, 0.17, 0xff0000);
-ball.velocity.set(0,1, 0);   
+const ball = new Ball(-1, 0.6, 0.028575, 0.17, 0xff0000);
+ball.velocity.set(4.7,2, 0); 
+// ball.angularVelocity.set(0,5,0);
+
 balls.push(ball);
 scene.add(ball.mesh);
 
@@ -131,7 +133,7 @@ console.log(
 // console.log("Angular Velocity Vector:", ball.angularVelocity);
   controls.update();
 // debugVisualizer.update(ball);
-  renderer.render(scene, camera);
+   renderer.render(scene, camera);
 
   requestAnimationFrame(animate);
 }
