@@ -16,7 +16,7 @@ export class Table {
     });
 
     this.mesh = new THREE.Mesh(geometry, material);
-
+this.mesh.receiveShadow = true;
     this.mesh.rotation.x = -Math.PI / 2;
   }
 }

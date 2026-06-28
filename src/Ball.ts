@@ -41,7 +41,8 @@ export class Ball {
     });
 
     this.mesh = new THREE.Mesh(geometry, material);
-
+this.mesh.castShadow = true;
+this.mesh.receiveShadow = true;
     const topGeometry = new THREE.SphereGeometry(
       this.radius,
       32,
@@ -68,7 +69,6 @@ export class Ball {
 
     this.mesh.add(marker);
 
-    // 2. النصف السفلي (باللون الأبيض دائماً ليظهر التباين مثل كرة البليارو)
     const bottomGeometry = new THREE.SphereGeometry(
       this.radius,
       32,
@@ -79,7 +79,7 @@ export class Ball {
       Math.PI / 2,
     );
     const bottomMaterial = new THREE.MeshStandardMaterial({
-      color: 0xffffff, // لون أبيض ثابت للنصف السفلي
+      color: 0xffffff, 
       roughness: 0.2,
       metalness: 0.1,
     });

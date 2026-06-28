@@ -7,7 +7,7 @@ export class Physics {
   static restitution = 0.9;
   
   static rollingResistance = 0.01;
-  static spinFriction = 0.008;   // معامل احتكاك الدوران حول العمودي
+  static spinFriction = 0.008; 
   public static update(ball: Ball, dt: number): void {
     const totalForce = this.getTotalForce(ball);
 
@@ -200,24 +200,20 @@ if (spinOmega.length() > 0) {
     const mu = 0.15;
 
     const solveWall = (normal: Vector3, penetration: number) => {
-      // تصحيح التداخل
       ball.position = ball.position.add(normal.multiplyScalar(penetration));
 
       const rContact = normal.multiplyScalar(-r);
-
-      // v_contact = v + ω × r
       const omegaCrossR = ball.angularVelocity.cross(rContact);
 
       const vContact = ball.velocity.add(omegaCrossR);
 
       const vN = vContact.dot(normal);
 
-      // إذا كانت الكرة تبتعد عن الحائط
+     
       if (vN >= 0) return;
 
       const invMass = 1 / ball.mass;
 
-      // -------- Normal Impulse --------
 
       const rCrossN = rContact.cross(normal);
       const rotationalN = rCrossN.lengthSq() / ball.inertia;
@@ -226,7 +222,6 @@ if (spinOmega.length() > 0) {
 
       const impulseN = normal.multiplyScalar(jN);
 
-      // -------- Friction Impulse --------
 
       const tangent = vContact.subtract(normal.multiplyScalar(vN));
 
@@ -252,11 +247,9 @@ if (spinOmega.length() > 0) {
 
       const totalImpulse = impulseN.add(impulseT);
 
-      // -------- Linear Velocity --------
 
       ball.velocity = ball.velocity.add(totalImpulse.multiplyScalar(invMass));
 
-      // -------- Angular Velocity --------
 
       const deltaOmega = rContact
         .cross(totalImpulse)
@@ -415,18 +408,11 @@ const vB_contact = b.velocity.clone().add(b.angularVelocity.clone().cross(rB));
       return;
     }
 
-    // إذا كانت السرعة الخطية شبه معدومة (الكرة ساكنة تقريباً) والسرعة الزاوية صغيرة جداً، أوقف الدوران
+
 if (ball.velocity.length() < 0.01 && ball.angularVelocity.length() < 0.05) {
     ball.angularVelocity = new Vector3(0, 0, 0);
 }
-    // إذا صار قريب من rolling، نثبت العلاقة الصحيحة بين v و ω
-    // if (slipSpeed < 0.001 && vSpeed > 0.0005) {
-    //   ball.angularVelocity = new Vector3(
-    //     -ball.velocity.y / ball.radius,
-    //     ball.velocity.x / ball.radius,
-    //     0,
-    //   );
-    // }
+    
   }
 
   

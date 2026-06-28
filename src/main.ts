@@ -4,6 +4,8 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Ball } from "./Ball";
 import { Physics } from "./Physics";
 import { PhysicsVisualizer } from "./PhysicsVisualizer";
+import { Lighting } from "./enviroment/Lighting";
+import { Room } from "./enviroment/Room";
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x202020);
@@ -19,24 +21,27 @@ camera.position.set(0,3, 1.5);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 const table = new Table(2.84, 1.42);
 scene.add(table.mesh);
 
-const light = new THREE.AmbientLight(0xffffff, 1);
-scene.add(light);
+Lighting.setupLighting(scene);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 
-
+const room = new Room();
+scene.add(room.mesh);
 
 const balls: Ball[] = [];
 
-const ball = new Ball(-1, 0.6, 0.028575, 0.17, 0xff0000);
-ball.velocity.set(4.7,2, 0); 
+const ball = new Ball(-1, -1, 0.028575, 0.17, 0xff0000);
+ball.velocity.set(2,-2, 0); 
 // ball.angularVelocity.set(0,5,0);
 
 balls.push(ball);
