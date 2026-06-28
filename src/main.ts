@@ -6,69 +6,108 @@ import { Physics } from "./Physics";
 import { PhysicsVisualizer } from "./PhysicsVisualizer";
 import { Lighting } from "./enviroment/Lighting";
 import { Room } from "./enviroment/Room";
+import { CameraController } from "./controls/CameraController";
 
+import { ControlPanel } from "./controls/Control_Panel.ts";
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x202020);
 
 const camera = new THREE.PerspectiveCamera(
-  60,
+  40,
   window.innerWidth / window.innerHeight,
   0.1,
   1000,
 );
 
-camera.position.set(0,3, 1.5);
+camera.position.set(0,2, 1.5);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-
+const controller = new CameraController(camera, renderer.domElement);
 const table = new Table(2.84, 1.42);
 scene.add(table.mesh);
 
 Lighting.setupLighting(scene);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.05;
-
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.enableDamping = true;
+// controls.dampingFactor = 0.05;
+// const cameraRig = new THREE.Group();
+// scene.add(cameraRig);
+// cameraRig.add(camera);
 const room = new Room();
 scene.add(room.mesh);
 
 const balls: Ball[] = [];
 
-const ball = new Ball(-1, -1, 0.028575, 0.17, 0xff0000);
-ball.velocity.set(2,-2, 0); 
-// ball.angularVelocity.set(0,5,0);
+const ball = new Ball(-1, -0, 0.028575, 0.17, 0);
+
 
 balls.push(ball);
 scene.add(ball.mesh);
+const panel = new ControlPanel(ball);
 
-// const ball2 = new Ball(0, 0.5, 0.028575,0.17 ,0xffffff);//0.17
-// ball2.velocity.set(1.7,-0.7, 0);
-// balls.push(ball2);
-// scene.add(ball2.mesh);
 
-// const ball3 = new Ball(1, 0.5, 0.028575,0.17 ,0xffffff);//0.17
-// ball3.velocity.set(1.7,-0.7, 0);
-// balls.push(ball3);
-// scene.add(ball3.mesh);
+const BALL_RADIUS = 0.028575; // الـ r الخاص بك
+const BALL_MASS = 0.17;
 
-for (let i = 0; i < 15; i++) {
-  const b = new Ball(
-    0.5 + i * 0.06,
-   -0.5 + i * 0.06,
-    0.028575,
-    0.17,
-    0xffff00
-  );
+const apexX = 0.5;  // نقطة بداية رأس المثلث طولياً
+const apexY = 0.0;  // منتصف الطاولة عرضياً
 
-  balls.push(b);
-  scene.add(b.mesh);
+// الترتيب الرسمي لكرات البلياردو (عشان تظهر الأرقام والألوان صحيحة)
+const rackOrder = [
+  1,
+  9, 2,
+  10, 8, 3,
+  11, 4, 12, 5,
+  13, 6, 14, 15, 7
+];
+let ballIndex = 0;
+
+// 1. الدالة الأولى: تحسب موقع الصف (طولياً) بناءً على رقم الصف
+function getRowX(rowNumber: number): number {
+  // استخدام جذر 3 للتلامس المثالي بين الصفوف
+  return apexX + rowNumber * (Math.sqrt(3) * BALL_RADIUS);
 }
+
+// 2. الدالة الثانية: تعطينا الانحرافات العرضية لكل كرة (نفس فكرة الـ switch بالجافا)
+function getRowYOffsets(rowNumber: number): number[] {
+  const r = BALL_RADIUS;
+  switch (rowNumber) {
+    case 0: return [0];
+    case 1: return [-r, r];
+    case 2: return [-2 * r, 0, 2 * r];
+    case 3: return [-3 * r, -r, r, 3 * r];
+    case 4: return [-4 * r, -2 * r, 0, 2 * r, 4 * r];
+    default: return [];
+  }
+}
+
+// 3. التطبيق بلفة بسيطة ومفهومة جداً بالنظر
+for (let row = 0; row < 5; row++) {
+  
+  const x = getRowX(row); // تحديد موقع الصف الحالي على الطاولة
+  
+  // اللفة الداخلية تقرأ مصفوفة الانحرافات الخاصة بالصف
+  for (const yOffset of getRowYOffsets(row)) {
+    const id = rackOrder[ballIndex];
+    const y = apexY + yOffset; // حساب الموقع العرضي الفعلي للكرة
+    
+    // إنشاء الكرة وإضافتها للمحاكاة
+    const b = new Ball(x, y, BALL_RADIUS, BALL_MASS, id);
+    balls.push(b);
+    scene.add(b.mesh);
+    
+    ballIndex++;
+  }
+}
+
+
+
 let lastTime = performance.now();
 
 // const debugVisualizer = new PhysicsVisualizer(scene);
@@ -136,10 +175,10 @@ console.log(
   Physics.getSlipVector(ball).length()
 );
 // console.log("Angular Velocity Vector:", ball.angularVelocity);
-  controls.update();
+  // controls.update();
 // debugVisualizer.update(ball);
    renderer.render(scene, camera);
-
+controller.update();
   requestAnimationFrame(animate);
 }
 

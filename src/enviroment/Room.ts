@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 export class Room {
   public mesh: THREE.Group;
-  private tableHeight = 0.75;
+  
 private loader = new GLTFLoader();
   constructor() {
     this.mesh = new THREE.Group();
@@ -71,7 +71,7 @@ private loadCafeModel() {
 
       // 📐 ضبط الحجم والموقع (عدل الـ scale إذا ظهر الموديل كبيراً أو صغيراً جداً)
       model.scale.set(1, 1, 1);
-      model.position.set(-27, -this.tableHeight, 3);
+      model.position.set(-27, -1.12, 3);
 
       // 🦾 المرور على أجزاء الموديل لتفعيل الظلال والألوان
       model.traverse((child: any) => {
