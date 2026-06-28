@@ -1,45 +1,71 @@
-import * as THREE from 'three';
-import { GUI } from 'lil-gui';
-import { Ball } from "../Ball.ts";
+import { GUI } from "lil-gui";
+import * as THREE from "three";
+import { Ball } from "../Ball";
+import { CueStick } from "../enviroment/Cue_Stick";
 
 export class ControlPanel {
   private gui: GUI;
-  
+  private targetBall: Ball;
+  private cue: CueStick;
+
   private config = {
-    vx: 0.0,
-    vy: 0.0,
-    applyInitialVelocity: () => this.triggerShot()
+    angleDeg: 0,
+    power: 0,
+    shoot: () => this.triggerShot()
   };
 
-  private targetBall: Ball;
-
-  constructor(ball: Ball) {
+  constructor(ball: Ball, cue: CueStick) {
     this.targetBall = ball;
-    this.gui = new GUI({ title: 'لوحة تحكم الفيزياء' });
+    this.cue = cue;
+
+    this.gui = new GUI({ title: "لوحة التحكم" });
+    this.gui.domElement.style.width = '500px';
+this.gui.domElement.style.fontSize = '16px';
     this.setupUI();
   }
 
   private setupUI() {
-    const folder = this.gui.addFolder('السرعة الابتدائية للكرة البيضاء');
-    
-    // ضبط السلايدر ليكون بين -15 و +15 وهي أقصى سرعة اندفاع فيزيائية منطقية بالـ (m/s)
-    // الصيغة: .add(object, property, min, max, step)
-    folder.add(this.config, 'vx', -15.0, 15.0, 0.1)
-          .name('سرعة X (m/s)');
-          
-    folder.add(this.config, 'vy', -15.0, 15.0, 0.1)
-          .name('سرعة Y (m/s)');
-    
-    // زر التحديث والإطلاق
-    folder.add(this.config, 'applyInitialVelocity').name('إطلاق / إعادة تعيين');
-    
+    const folder = this.gui.addFolder("التحكم بالعصا");
+
+    folder
+      .add(this.config, "angleDeg", 0, 360, 1)
+      .name("الزاوية");
+
+    folder
+      .add(this.config, "power", 0, 20, 0.1)
+      .name("القوة");
+
+    folder
+      .add(this.config, "shoot")
+      .name("إطلاق");
+
     folder.open();
   }
 
+  public update() {
+    const angleRad = THREE.MathUtils.degToRad(this.config.angleDeg);
+
+    this.cue.update(
+      this.targetBall,
+      angleRad,
+      this.config.power
+    );
+  }
+
   private triggerShot() {
-    // تطبيق السرعات الجديدة مباشرة في كود الفيزياء الخاص بك
-    this.targetBall.velocity.set(this.config.vx, this.config.vy, 0);
-    
-    console.log("تم تطبيق السرعة الابتدائية الجديدة:", this.config.vx, this.config.vy);
+    const angleRad = THREE.MathUtils.degToRad(this.config.angleDeg);
+
+    const vx = this.config.power * Math.cos(angleRad);
+    const vy = -this.config.power * Math.sin(angleRad);
+
+    this.targetBall.velocity.set(vx, vy, 0);
+
+ this.cue.hide();
+
+  setTimeout(() => {
+    this.cue.show();
+  }, 5000);
+
+    console.log("Shot:", vx, vy);
   }
 }
