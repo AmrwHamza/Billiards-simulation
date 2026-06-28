@@ -192,6 +192,7 @@ export class Ball {
       map: ballTexture, // ربط صورة الكرة المفرودة
       roughness: 0.15,  // صقل السطح ليعطي لمعان كرات البلياردو الحقيقية
       metalness: 0.0,
+        envMapIntensity: 1.2,
     });
 
     this.mesh = new THREE.Mesh(geometry, material);

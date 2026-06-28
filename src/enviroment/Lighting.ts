@@ -3,54 +3,34 @@ import * as THREE from "three";
 export class Lighting {
   static setupLighting(scene: THREE.Scene) {
 
-    // 🟢 1. Ambient (رفع الإضاءة العامة)
-    const ambient = new THREE.AmbientLight(0xffffff, 0.5);
-    scene.add(ambient);
+    // 🌕 Ambient بسيط (لا تخليه صفر)
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
 
-    // 🟢 2. Hemisphere (أساسي جداً للـ interiors)
-  // اجعل الإضاءة بيضاء ورمادية مؤقتاً
-const hemi = new THREE.HemisphereLight(0xffffff, 0xffffff, 1.0);
-    scene.add(hemi);
+    // 💡 Main directional light (أسهل وأثبت من spot للتجربة)
+    const light = new THREE.DirectionalLight(0xffffff, 1.4);
 
-    // 🟡 3. Main table light (spot فوق الطاولة)
-    const spot = new THREE.SpotLight(0xfff4d6, 6);
-    spot.position.set(0, 3.5, 0);
+light.position.set(-1, 1, 2);
+    light.castShadow = true;
+light.shadow.bias = -0.0002;  
+  // 🔥 مهم جداً جداً
+ light.shadow.mapSize.width = 4096;
+light.shadow.mapSize.height = 4096;
+light.shadow.radius = 3;
+    light.shadow.camera.near = 0.1;
+    light.shadow.camera.far = 20;
 
-    spot.angle = Math.PI / 3;
-    spot.penumbra = 0.7;
-    spot.decay = 1;
-    spot.distance = 20;
+    // حجم منطقة الظل (CRITICAL)
+ light.shadow.camera.left = -4;
+light.shadow.camera.right = 4;
+light.shadow.camera.top = 4;
+light.shadow.camera.bottom = -4;
 
-    spot.castShadow = true;
-spot.shadow.mapSize.width = 2048;
-spot.shadow.mapSize.height = 2048;
-spot.shadow.bias = -0.0005; 
+    scene.add(light);
 
-// 🌟 تقريب الكاميرا الخاصة بالظل لتركز على مساحة المقهى فقط وتزيد الدقة
-spot.shadow.camera.near = 0.5;
-spot.shadow.camera.far = 15;
-
-
+    // 🎯 هدف (مو ضروري مع directional بس خلينا ثابت)
     const target = new THREE.Object3D();
     target.position.set(0, 0, 0);
     scene.add(target);
-
-    spot.target = target;
-
-    scene.add(spot);
-
-    // 🟣 4. Fill lights (سر الواقعية الحقيقي)
-    const fill1 = new THREE.PointLight(0xffddaa, 1.2, 15);
-    fill1.position.set(4, 2, 3);
-    scene.add(fill1);
-
-    const fill2 = new THREE.PointLight(0xffddaa, 1.2, 15);
-    fill2.position.set(-4, 2, -3);
-    scene.add(fill2);
-
-    const fill3 = new THREE.PointLight(0xffddaa, 0.8, 12);
-    fill3.position.set(0, 2, -4);
-    scene.add(fill3);
-
+    light.target = target;
   }
 }

@@ -16,19 +16,16 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x202020);
 //////////////////////////
 
-//الكاميرا 
+//الكاميرا
 const camera = new THREE.PerspectiveCamera(
   40,
   window.innerWidth / window.innerHeight,
   0.1,
   1000,
 );
-camera.position.set(0,1, -5);
+camera.position.set(0, 1, -5);
 camera.lookAt(0, 0, 0);
 ///////////////////
-
-
-
 
 // الستيك
 const cue = new CueStick();
@@ -45,15 +42,16 @@ const room = new Room();
 scene.add(room.mesh);
 /////////////////
 
-
-//الاسهم التوضيحية 
+//الاسهم التوضيحية
 const debugVisualizer = new PhysicsVisualizer(scene);
 ////////////////
 
-
-
 //الرندرة
-const renderer = new THREE.WebGLRenderer({ antialias: true });
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: false,
+  powerPreference: "high-performance",
+});
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -69,14 +67,16 @@ document.body.appendChild(renderer.domElement);
 renderer.domElement.style.position = "fixed";
 renderer.domElement.style.top = "0";
 renderer.domElement.style.left = "0";
-////////////
 
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.autoUpdate = true;
+renderer.shadowMap.needsUpdate = true;
+////////////
 
 const controller = new CameraController(camera, renderer.domElement);
 
 Lighting.setupLighting(scene);
-
-
 
 const balls: Ball[] = [];
 
@@ -86,7 +86,6 @@ balls.push(ball);
 scene.add(ball.mesh);
 /////////////////////////////
 
-
 //لوجة التحكم
 const panel = new ControlPanel(ball, cue);
 /////////////////
@@ -94,16 +93,10 @@ const panel = new ControlPanel(ball, cue);
 const BALL_RADIUS = 0.028575; // الـ r الخاص بك
 const BALL_MASS = 0.17;
 
-const apexX = 0.5;  // نقطة بداية رأس المثلث طولياً
-const apexY = 0.0;  // منتصف الطاولة عرضياً
+const apexX = 0.5; // نقطة بداية رأس المثلث طولياً
+const apexY = 0.0; // منتصف الطاولة عرضياً
 
-const rackOrder = [
-  1,
-  9, 2,
-  10, 8, 3,
-  11, 4, 12, 5,
-  13, 6, 14, 15, 7
-];
+const rackOrder = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 13, 6, 14, 15, 7];
 let ballIndex = 0;
 
 // 1. الدالة الأولى: تحسب موقع الصف (طولياً) بناءً على رقم الصف
@@ -116,81 +109,72 @@ function getRowX(rowNumber: number): number {
 function getRowYOffsets(rowNumber: number): number[] {
   const r = BALL_RADIUS;
   switch (rowNumber) {
-    case 0: return [0];
-    case 1: return [-r, r];
-    case 2: return [-2 * r, 0, 2 * r];
-    case 3: return [-3 * r, -r, r, 3 * r];
-    case 4: return [-4 * r, -2 * r, 0, 2 * r, 4 * r];
-    default: return [];
+    case 0:
+      return [0];
+    case 1:
+      return [-r, r];
+    case 2:
+      return [-2 * r, 0, 2 * r];
+    case 3:
+      return [-3 * r, -r, r, 3 * r];
+    case 4:
+      return [-4 * r, -2 * r, 0, 2 * r, 4 * r];
+    default:
+      return [];
   }
 }
 
 // 3. التطبيق بلفة بسيطة ومفهومة جداً بالنظر
 for (let row = 0; row < 5; row++) {
-  
   const x = getRowX(row); // تحديد موقع الصف الحالي على الطاولة
-  
+
   // اللفة الداخلية تقرأ مصفوفة الانحرافات الخاصة بالصف
   for (const yOffset of getRowYOffsets(row)) {
     const id = rackOrder[ballIndex];
     const y = apexY + yOffset; // حساب الموقع العرضي الفعلي للكرة
-    
+
     // إنشاء الكرة وإضافتها للمحاكاة
     const b = new Ball(x, y, BALL_RADIUS, BALL_MASS, id);
     balls.push(b);
     scene.add(b.mesh);
-    
+
     ballIndex++;
   }
 }
 
-
-
 let lastTime = performance.now();
-
-
 
 const FIXED_DT = 1 / 240;
 function animate(time: number) {
-//  const dt = Math.min(
-//    (time-lastTime)/1000,
-//    0.016
-// );
+  //  const dt = Math.min(
+  //    (time-lastTime)/1000,
+  //    0.016
+  // );
 
-//   lastTime = time;
+  //   lastTime = time;
 
+  for (let step = 0; step < 4; step++) {
+    for (const ball of balls) {
+      ball.update(FIXED_DT);
+    }
 
-for (let step = 0; step < 4; step++) {
-
-  for (const ball of balls) {
-    ball.update(FIXED_DT);
-  }
-
-  for (let i = 0; i < balls.length; i++) {
-    for (let j = i + 1; j < balls.length; j++) {
-      Physics.resolveBallCollision(
-        balls[i],
-        balls[j]
-      );
+    for (let i = 0; i < balls.length; i++) {
+      for (let j = i + 1; j < balls.length; j++) {
+        Physics.resolveBallCollision(balls[i], balls[j]);
+      }
     }
   }
-}
 
+  const slip = Physics.getSlipVector(ball);
 
+  debugVisualizer.update(ball);
 
-const slip = Physics.getSlipVector(ball);
+  //////////////
 
-
-
-
-debugVisualizer.update(ball);
-
-//////////////
-
-//////////////////
-controller.update();
-panel.update();
-   renderer.render(scene, camera);
+  //////////////////
+  controller.update();
+  panel.update();
+  renderer.render(scene, camera);
   requestAnimationFrame(animate);
 }
 

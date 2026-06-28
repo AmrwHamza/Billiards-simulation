@@ -14,7 +14,7 @@ export class CameraController {
     right: false,
   };
 
-  private speed = 0.01; // قمت بزيادة السرعة قليلاً لتجوال أفضل
+  private speed = 0.05; // قمت بزيادة السرعة قليلاً لتجوال أفضل
 
   constructor(camera: THREE.PerspectiveCamera, dom: HTMLElement) {
     this.camera = camera;

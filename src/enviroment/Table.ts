@@ -68,7 +68,7 @@ export class Table {
     debugBox.position.y = 0; 
     
     // نضيف الصندوق الأحمر داخل الحاوية
-    this.mesh.add(debugBox);
+    // this.mesh.add(debugBox);
 
     // 4️⃣ استدعاء دالة تحميل الموديل الـ 3D الجديد
     this.loadModel();
