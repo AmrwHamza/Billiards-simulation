@@ -2,7 +2,7 @@ import { GUI } from "lil-gui";
 import * as THREE from "three";
 import { Ball } from "../enviroment/Ball";
 import { CueStick } from "../enviroment/Cue_Stick";
-import { Physics } from "../Physics";
+import { Physics } from "../Physics/Physics";
 
 export class ControlPanel {
   private gui: GUI;
@@ -73,7 +73,7 @@ export class ControlPanel {
       .onChange((val: number) => {
         this.balls.forEach((b) => (b.mass = val));
         this.massControllers.forEach((controller) =>
-          controller.updateDisplay()
+          controller.updateDisplay(),
         );
       });
 
@@ -160,15 +160,15 @@ export class ControlPanel {
     }
   }
 
- private triggerShot() {
-  const angleRad = THREE.MathUtils.degToRad(this.config.angleDeg);
+  private triggerShot() {
+    const angleRad = THREE.MathUtils.degToRad(this.config.angleDeg);
 
-  const vx = this.config.power * Math.cos(angleRad);
-  const vy = -this.config.power * Math.sin(angleRad);
+    const vx = this.config.power * Math.cos(angleRad);
+    const vy = -this.config.power * Math.sin(angleRad);
 
-  this.targetBall.velocity.set(vx, vy, 0);
+    this.targetBall.velocity.set(vx, vy, 0);
 
-  this.cue.hide();
-  setTimeout(() => this.cue.show(), 4000);
-}
+    this.cue.hide();
+    setTimeout(() => this.cue.show(), 4000);
+  }
 }

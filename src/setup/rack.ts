@@ -51,3 +51,4 @@ export function createRack(scene: THREE.Scene, balls: Ball[]) {
     }
   }
 }
+

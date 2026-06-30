@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Vector3 } from "../math/Vector3";
-import { Physics } from "../Physics";
+import { Physics } from "../Physics/Physics";
 
 export class Ball {
   public radius: number;
@@ -68,7 +68,7 @@ export class Ball {
     const axis = new THREE.Vector3(
       this.angularVelocity.x,
       this.angularVelocity.z,
-      this.angularVelocity.y
+      this.angularVelocity.y,
     ).normalize();
 
     const deltaRotation = new THREE.Quaternion();

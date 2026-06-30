@@ -2,7 +2,7 @@ import * as THREE from "three";
 import { Table } from "./enviroment/Table.ts";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Ball } from "./enviroment/Ball.ts";
-import { Physics } from "./Physics";
+import { Physics } from "./Physics/Physics.ts";
 // import { PhysicsVisualizer } from "./PhysicsVisualizer";
 import { Lighting } from "./enviroment/Lighting";
 import { Room } from "./enviroment/Room";
@@ -14,6 +14,7 @@ import { createRack } from "./setup/rack";
 import { createRenderer } from "./setup/renderer";
 import { setupWorld } from "./setup/world";
 import { createCamera } from "./setup/camera";
+import { PhysicsVisualizer } from "./PhysicsVisualizer.ts";
 
 //المشهد
 const scene = new THREE.Scene();
@@ -35,18 +36,17 @@ scene.add(ball.mesh);
 /////////////////////////////
 createRack(scene, balls);
 //لوجة التحكم
-const panel = new ControlPanel(ball,balls, world.cue);
+const panel = new ControlPanel(ball, balls, world.cue);
 /////////////////
 
 //الاسهم التوضيحية
-// const debugVisualizer = new PhysicsVisualizer(scene);
+const debugVisualizer = new PhysicsVisualizer(scene);
 ////////////////
 
 let lastTime = performance.now();
 const FIXED_DT = 1 / 240;
 
 function animate(time: number) {
-
   const dt = (time - lastTime) / 1000;
   lastTime = time;
 
@@ -67,7 +67,7 @@ function animate(time: number) {
       }
     }
   }
-
+  debugVisualizer.update(ball);
   controller.update();
   panel.update();
   renderer.render(scene, camera);

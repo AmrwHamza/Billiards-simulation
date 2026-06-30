@@ -3,7 +3,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 export class CameraController {
   private camera: THREE.PerspectiveCamera;
-  // private dom: HTMLElement;
+ 
 
   public orbit: OrbitControls;
 

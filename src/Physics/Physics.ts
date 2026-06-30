@@ -1,12 +1,12 @@
-import { Ball } from "./enviroment/Ball";
-import { Vector3 } from "./math/Vector3";
+import { Ball } from "../enviroment/Ball";
+import { Vector3 } from "../math/Vector3";
 
 export class Physics {
   static gravity = 9.81;
- public static friction = 0.2;
+  public static friction = 0.2;
   static restitution = 0.9;
 
- public static rollingResistance = 0.01;
+  public static rollingResistance = 0.01;
   public static spinFriction = 0.008;
   public static update(ball: Ball, dt: number): void {
     const totalForce = this.getTotalForce(ball);
@@ -68,8 +68,6 @@ export class Physics {
       return direction.multiplyScalar(-magnitude);
     }
 
-   
-
     return new Vector3(0, 0, 0);
   }
 
@@ -114,7 +112,7 @@ export class Physics {
     torque = torque.add(spinTorque);
     return torque;
   }
- 
+
   static getSlipVector(ball: Ball): Vector3 {
     const omegaCrossR = new Vector3(
       -ball.angularVelocity.y * ball.radius,
