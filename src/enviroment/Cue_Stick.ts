@@ -7,7 +7,7 @@ export class CueStick {
   private model: THREE.Group | null = null;
   private loader: GLTFLoader;
 
-  private static readonly MODEL_PATH = "/models/Cue stick/billiard_cue.glb";
+  private static readonly MODEL_PATH = "/models/Cue_stick/billiard_cue.glb";
 
   constructor() {
     this.group = new THREE.Group();

@@ -3,11 +3,11 @@ import { Table } from "./enviroment/Table.ts";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { Ball } from "./enviroment/Ball.ts";
 import { Physics } from "./Physics";
-import { PhysicsVisualizer } from "./PhysicsVisualizer";
+// import { PhysicsVisualizer } from "./PhysicsVisualizer";
 import { Lighting } from "./enviroment/Lighting";
 import { Room } from "./enviroment/Room";
 import { CameraController } from "./controls/CameraController";
-
+import { Telemetry } from "./Telemetry.ts";
 import { ControlPanel } from "./controls/Control_Panel.ts";
 import { CueStick } from "./enviroment/Cue_Stick.ts";
 
@@ -63,7 +63,7 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
-document.body.appendChild(renderer.domElement);
+// document.body.appendChild(renderer.domElement);
 renderer.domElement.style.position = "fixed";
 renderer.domElement.style.top = "0";
 renderer.domElement.style.left = "0";
@@ -86,10 +86,6 @@ balls.push(ball);
 scene.add(ball.mesh);
 /////////////////////////////
 
-//لوجة التحكم
-const panel = new ControlPanel(ball, cue);
-/////////////////
-
 const BALL_RADIUS = 0.028575; // الـ r الخاص بك
 const BALL_MASS = 0.17;
 
@@ -111,41 +107,51 @@ function getRowYOffsets(rowNumber: number): number[] {
   switch (rowNumber) {
     case 0:
       return [0];
-    case 1:
-      return [-r, r];
-    case 2:
-      return [-2 * r, 0, 2 * r];
-    case 3:
+      case 1:
+        return [-r, r];
+        case 2:
+          return [-2 * r, 0, 2 * r];
+          case 3:
       return [-3 * r, -r, r, 3 * r];
     case 4:
       return [-4 * r, -2 * r, 0, 2 * r, 4 * r];
-    default:
+      default:
       return [];
+    }
   }
-}
-
-// 3. التطبيق بلفة بسيطة ومفهومة جداً بالنظر
-for (let row = 0; row < 5; row++) {
-  const x = getRowX(row); // تحديد موقع الصف الحالي على الطاولة
-
-  // اللفة الداخلية تقرأ مصفوفة الانحرافات الخاصة بالصف
-  for (const yOffset of getRowYOffsets(row)) {
-    const id = rackOrder[ballIndex];
-    const y = apexY + yOffset; // حساب الموقع العرضي الفعلي للكرة
-
+  
+  // 3. التطبيق بلفة بسيطة ومفهومة جداً بالنظر
+  for (let row = 0; row < 5; row++) {
+    const x = getRowX(row); // تحديد موقع الصف الحالي على الطاولة
+    
+    // اللفة الداخلية تقرأ مصفوفة الانحرافات الخاصة بالصف
+    for (const yOffset of getRowYOffsets(row)) {
+      const id = rackOrder[ballIndex];
+      const y = apexY + yOffset; // حساب الموقع العرضي الفعلي للكرة
+      
     // إنشاء الكرة وإضافتها للمحاكاة
     const b = new Ball(x, y, BALL_RADIUS, BALL_MASS, id);
-    balls.push(b);
-    scene.add(b.mesh);
-
-    ballIndex++;
+    // balls.push(b);
+    // scene.add(b.mesh);
+    
+    // ballIndex++;
   }
 }
+
+//لوجة التحكم
+const panel = new ControlPanel(ball,balls, cue);
+/////////////////
+
+const telemetry = new Telemetry();
+
 
 let lastTime = performance.now();
 
 const FIXED_DT = 1 / 240;
 function animate(time: number) {
+
+
+
   for (let step = 0; step < 4; step++) {
     for (let i = balls.length - 1; i >= 0; i--) {
       const b = balls[i];
@@ -170,7 +176,8 @@ function animate(time: number) {
   // debugVisualizer.update(ball);
 
   //////////////
-
+const speed = ball.velocity.length();
+telemetry.update(speed);
   //////////////////
   controller.update();
   panel.update();

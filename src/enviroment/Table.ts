@@ -76,7 +76,7 @@ export class Table {
 
   private loadModel() {
     // 🌟 ضع هنا اسم ملف الـ GLB الجديد الذي قمت بتحميله ونقلته لمجلد public
-    const modelPath = "/public/models/Billiard table/billiard_table.glb"; 
+    const modelPath = "/public/models/Billiard_table/billiard_table.glb"; 
 
     this.loader.load(
       modelPath,

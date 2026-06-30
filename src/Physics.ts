@@ -3,11 +3,11 @@ import { Vector3 } from "./math/Vector3";
 
 export class Physics {
   static gravity = 9.81;
-  static friction = 0.2;
+ public static friction = 0.2;
   static restitution = 0.9;
 
-  static rollingResistance = 0.01;
-  static spinFriction = 0.008;
+ public static rollingResistance = 0.01;
+  public static spinFriction = 0.008;
   public static update(ball: Ball, dt: number): void {
     const totalForce = this.getTotalForce(ball);
 
@@ -68,11 +68,7 @@ export class Physics {
       return direction.multiplyScalar(-magnitude);
     }
 
-    // if (vSpeed > 0.01) {
-    //   const direction = ball.velocity.clone().normalize();
-    //   const magnitude = this.rollingFriction * ball.mass * Physics.gravity;
-    //   return direction.multiplyScalar(-magnitude);
-    // }
+   
 
     return new Vector3(0, 0, 0);
   }
@@ -118,39 +114,7 @@ export class Physics {
     torque = torque.add(spinTorque);
     return torque;
   }
-  // static getTorque(ball: Ball): Vector3 {
-  //   const slip = this.getSlipVector(ball);
-  //   const friction = this.getFriction(ball);
-
-  //   let torque = new Vector3(
-  //     friction.y * ball.radius,
-  //     -friction.x * ball.radius,
-  //     0
-  //   );
-
-  //   // 🔥 NEW: rolling resistance (even when slip = 0)
-  //   const omega = ball.angularVelocity;
-  //   const omegaMag = omega.length();
-
-  //   if (omegaMag > 1e-6) {
-  //     const normalForce = ball.mass * Physics.gravity;
-  //     const magnitude =
-  //       Physics.rollingResistance * normalForce * ball.radius;
-
-  //     const opp = omega.clone().multiplyScalar(-1 / omegaMag);
-
-  //     const rollingTorque = opp.multiplyScalar(magnitude);
-
-  //     torque = torque.add(rollingTorque);
-  //   }
-  //  const spinTorque = new Vector3(
-  //     0,
-  //     0,
-  //     -Physics.spinFriction * ball.mass * Physics.gravity * ball.radius * Math.sign(ball.angularVelocity.z)
-  //   );
-  //   torque = torque.add(spinTorque);
-  //   return torque;
-  // }
+ 
   static getSlipVector(ball: Ball): Vector3 {
     const omegaCrossR = new Vector3(
       -ball.angularVelocity.y * ball.radius,
