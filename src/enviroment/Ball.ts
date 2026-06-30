@@ -4,7 +4,7 @@ import { Physics } from "../Physics";
 
 export class Ball {
   public radius: number;
-  public mass: number; // غيّرناها إلى خاصية عامة وبسيطة مباشرة
+  public mass: number;
   public position: Vector3;
   public velocity: Vector3;
   public acceleration: Vector3;
@@ -19,7 +19,7 @@ export class Ball {
 
   constructor(x: number, y: number, radius: number, mass: number, id: number) {
     this.radius = radius;
-    this.mass = mass; // إسناد مباشر للرقم
+    this.mass = mass;
     this.id = id;
 
     this.position = new Vector3(x, y, this.radius);
@@ -47,7 +47,6 @@ export class Ball {
     this.syncMesh();
   }
 
-  // الـ inertia تبقى ديناميكية، وتقرأ قيمة this.mass المحدثة فوراً
   public get inertia(): number {
     return (2 / 5) * this.mass * this.radius * this.radius;
   }

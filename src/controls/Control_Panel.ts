@@ -163,7 +163,6 @@ export class ControlPanel {
  private triggerShot() {
   const angleRad = THREE.MathUtils.degToRad(this.config.angleDeg);
 
-  // إعادة القوة الابتدائية الصافية كما كانت دون تعديل يدوي بالكتلة
   const vx = this.config.power * Math.cos(angleRad);
   const vy = -this.config.power * Math.sin(angleRad);
 

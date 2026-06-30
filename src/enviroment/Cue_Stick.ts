@@ -55,7 +55,6 @@ export class CueStick {
       const pullBack = power * 0.03;
       this.model.position.set(offset - pullBack, 0, 0);
 
-      //   this.model.position.set(baseOffset - pullBack, 0, 0);
     }
   }
 
