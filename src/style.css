@@ -12,13 +12,3 @@ html, body {
   background: #202020;
 }
 
-
-#speedChart {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 400px !important;
-  height: 200px !important;
-  background: white;
-  z-index: 9999;
-}

@@ -7,7 +7,7 @@ import { Physics } from "./Physics";
 import { Lighting } from "./enviroment/Lighting";
 import { Room } from "./enviroment/Room";
 import { CameraController } from "./controls/CameraController";
-import { Telemetry } from "./Telemetry.ts";
+
 import { ControlPanel } from "./controls/Control_Panel.ts";
 import { CueStick } from "./enviroment/Cue_Stick.ts";
 
@@ -131,10 +131,10 @@ function getRowYOffsets(rowNumber: number): number[] {
       
     // إنشاء الكرة وإضافتها للمحاكاة
     const b = new Ball(x, y, BALL_RADIUS, BALL_MASS, id);
-    // balls.push(b);
-    // scene.add(b.mesh);
+    balls.push(b);
+    scene.add(b.mesh);
     
-    // ballIndex++;
+    ballIndex++;
   }
 }
 
@@ -142,22 +142,23 @@ function getRowYOffsets(rowNumber: number): number[] {
 const panel = new ControlPanel(ball,balls, cue);
 /////////////////
 
-const telemetry = new Telemetry();
 
 
 let lastTime = performance.now();
 
 const FIXED_DT = 1 / 240;
+
+
 function animate(time: number) {
 
-
+  const dt = (time - lastTime) / 1000;
+  lastTime = time;
 
   for (let step = 0; step < 4; step++) {
     for (let i = balls.length - 1; i >= 0; i--) {
       const b = balls[i];
       b.update(FIXED_DT);
 
-      // شرط الاستثناء: id 0 للكرة البيضاء
       if (b.id !== 0 && Physics.checkHoleCollision(b)) {
         scene.remove(b.mesh);
         balls.splice(i, 1);
@@ -171,17 +172,14 @@ function animate(time: number) {
     }
   }
 
-  const slip = Physics.getSlipVector(ball);
 
-  // debugVisualizer.update(ball);
 
-  //////////////
-const speed = ball.velocity.length();
-telemetry.update(speed);
-  //////////////////
+  // 🔥 هون الحل
+
   controller.update();
   panel.update();
   renderer.render(scene, camera);
+
   requestAnimationFrame(animate);
 }
 
