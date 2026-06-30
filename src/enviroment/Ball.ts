@@ -78,7 +78,7 @@
 //       Math.PI / 2,
 //     );
 //     const bottomMaterial = new THREE.MeshStandardMaterial({
-//       color: 0xffffff, 
+//       color: 0xffffff,
 //       roughness: 0.2,
 //       metalness: 0.1,
 //     });
@@ -101,19 +101,16 @@
 
 // //  private updateRotation(dt: number): void {
 // //   const angle = this.angularVelocity.length() * dt;
-// //   if (angle < 0.0001) return; 
+// //   if (angle < 0.0001) return;
 
-  
 // //   const axis = new THREE.Vector3(
 // //     this.angularVelocity.x,
 // //     this.angularVelocity.z,
 // //     this.angularVelocity.y
 // //   ).normalize();
 
-
 // //   const deltaRotation = new THREE.Quaternion();
-// //   deltaRotation.setFromAxisAngle(axis, -angle); 
-
+// //   deltaRotation.setFromAxisAngle(axis, -angle);
 
 // //   this.mesh.quaternion.multiplyQuaternions(deltaRotation, this.mesh.quaternion);
 // // }
@@ -136,8 +133,8 @@
 
 // }
 import * as THREE from "three";
-import { Vector3 } from "./math/Vector3";
-import { Physics } from "./Physics";
+import { Vector3 } from "../math/Vector3";
+import { Physics } from "../Physics";
 
 export class Ball {
   public radius: number;
@@ -161,7 +158,7 @@ export class Ball {
     y: number,
     radius: number,
     mass: number,
-    id: number // استبدال اللون بالـ id لاستدعاء الصورة المناسبة
+    id: number, // استبدال اللون بالـ id لاستدعاء الصورة المناسبة
   ) {
     this.radius = radius;
     this.mass = mass;
@@ -182,7 +179,7 @@ export class Ball {
     // 1. تحميل الصورة ديناميكياً من مجلد textures بناءً على الرقم
     // (تأكد من مطابقة صيغة الملف .png أو .jpg لما قمت بتحميله)
     const ballTexture = Ball.textureLoader.load(`textures/Ball_${id}.jpg`);
-    
+
     // ضبط ترميز الألوان لتظهر بشكل صحيح ومشبع داخل محرك الرندر
     ballTexture.colorSpace = THREE.SRGBColorSpace;
 
@@ -190,9 +187,9 @@ export class Ball {
     const geometry = new THREE.SphereGeometry(this.radius, 32, 32);
     const material = new THREE.MeshStandardMaterial({
       map: ballTexture, // ربط صورة الكرة المفرودة
-      roughness: 0.15,  // صقل السطح ليعطي لمعان كرات البلياردو الحقيقية
+      roughness: 0.15, // صقل السطح ليعطي لمعان كرات البلياردو الحقيقية
       metalness: 0.0,
-        envMapIntensity: 1.2,
+      envMapIntensity: 1.2,
     });
 
     this.mesh = new THREE.Mesh(geometry, material);
@@ -222,7 +219,7 @@ export class Ball {
     const axis = new THREE.Vector3(
       this.angularVelocity.x,
       this.angularVelocity.z,
-      this.angularVelocity.y
+      this.angularVelocity.y,
     ).normalize();
 
     // حساب زاوية الدوران وتطبيقها مستخدمين الـ Quaternion لمنع مشكلة الـ Gimbal Lock

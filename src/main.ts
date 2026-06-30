@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Table } from "./enviroment/Table.ts";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { Ball } from "./Ball";
+import { Ball } from "./enviroment/Ball.ts";
 import { Physics } from "./Physics";
 import { PhysicsVisualizer } from "./PhysicsVisualizer";
 import { Lighting } from "./enviroment/Lighting";
@@ -23,7 +23,7 @@ const camera = new THREE.PerspectiveCamera(
   0.1,
   1000,
 );
-camera.position.set(0, 1, -5);
+camera.position.set(0, 2.8, 0);
 camera.lookAt(0, 0, 0);
 ///////////////////
 
@@ -43,7 +43,7 @@ scene.add(room.mesh);
 /////////////////
 
 //الاسهم التوضيحية
-const debugVisualizer = new PhysicsVisualizer(scene);
+// const debugVisualizer = new PhysicsVisualizer(scene);
 ////////////////
 
 //الرندرة
@@ -146,16 +146,16 @@ let lastTime = performance.now();
 
 const FIXED_DT = 1 / 240;
 function animate(time: number) {
-  //  const dt = Math.min(
-  //    (time-lastTime)/1000,
-  //    0.016
-  // );
-
-  //   lastTime = time;
-
   for (let step = 0; step < 4; step++) {
-    for (const ball of balls) {
-      ball.update(FIXED_DT);
+    for (let i = balls.length - 1; i >= 0; i--) {
+      const b = balls[i];
+      b.update(FIXED_DT);
+
+      // شرط الاستثناء: id 0 للكرة البيضاء
+      if (b.id !== 0 && Physics.checkHoleCollision(b)) {
+        scene.remove(b.mesh);
+        balls.splice(i, 1);
+      }
     }
 
     for (let i = 0; i < balls.length; i++) {
@@ -167,7 +167,7 @@ function animate(time: number) {
 
   const slip = Physics.getSlipVector(ball);
 
-  debugVisualizer.update(ball);
+  // debugVisualizer.update(ball);
 
   //////////////
 

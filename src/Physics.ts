@@ -1,13 +1,13 @@
-import { Ball } from "./Ball";
+import { Ball } from "./enviroment/Ball";
 import { Vector3 } from "./math/Vector3";
 
 export class Physics {
   static gravity = 9.81;
   static friction = 0.2;
   static restitution = 0.9;
-  
+
   static rollingResistance = 0.01;
-  static spinFriction = 0.008; 
+  static spinFriction = 0.008;
   public static update(ball: Ball, dt: number): void {
     const totalForce = this.getTotalForce(ball);
 
@@ -40,7 +40,6 @@ export class Physics {
     }
     // ball.angularVelocity.z = 0;
   }
-
 
   static getTotalForce(ball: Ball): Vector3 {
     const gravity = this.getGravity(ball);
@@ -78,100 +77,91 @@ export class Physics {
     return new Vector3(0, 0, 0);
   }
 
+  static getTorque(ball: Ball): Vector3 {
+    const slip = this.getSlipVector(ball);
+    const friction = this.getFriction(ball);
 
-
-static getTorque(ball: Ball): Vector3 {
-  const slip = this.getSlipVector(ball);
-  const friction = this.getFriction(ball);
-
-  let torque = new Vector3(
-    friction.y * ball.radius,
-    -friction.x * ball.radius,
-    0
-  );
-
-  // 🔥 NEW: rolling resistance (even when slip = 0)
-  const omega = ball.angularVelocity;
-  const omegaxy= new Vector3(omega.x,omega.y,0);
-  
-  const omegaMag = omegaxy.length();
-
-  if (omegaMag > 1e-6) {
-    const normalForce = ball.mass * Physics.gravity;
-    const magnitude = (2 / 5) *
-      Physics.rollingResistance * normalForce * ball.radius;
-
-    const opp = omegaxy.clone().multiplyScalar(-1 / omegaMag);
-
-    const rollingTorque = opp.multiplyScalar(magnitude);
-
-    torque = torque.add(rollingTorque);
-  }
-const spinOmega = new Vector3(
-  0,
-  0,
-  ball.angularVelocity.z
-);
-
-let spinTorque = new Vector3();
-
-if (spinOmega.length() > 0) {
-  spinTorque = spinOmega
-    .normalize()
-    .multiplyScalar(
-      -Physics.spinFriction *
-      ball.mass *
-      Physics.gravity *
-      ball.radius
+    let torque = new Vector3(
+      friction.y * ball.radius,
+      -friction.x * ball.radius,
+      0,
     );
-}
-  torque = torque.add(spinTorque);
-  return torque;
-}
-// static getTorque(ball: Ball): Vector3 {
-//   const slip = this.getSlipVector(ball);
-//   const friction = this.getFriction(ball);
 
-//   let torque = new Vector3(
-//     friction.y * ball.radius,
-//     -friction.x * ball.radius,
-//     0
-//   );
+    // 🔥 NEW: rolling resistance (even when slip = 0)
+    const omega = ball.angularVelocity;
+    const omegaxy = new Vector3(omega.x, omega.y, 0);
 
-//   // 🔥 NEW: rolling resistance (even when slip = 0)
-//   const omega = ball.angularVelocity;
-//   const omegaMag = omega.length();
+    const omegaMag = omegaxy.length();
 
-//   if (omegaMag > 1e-6) {
-//     const normalForce = ball.mass * Physics.gravity;
-//     const magnitude =
-//       Physics.rollingResistance * normalForce * ball.radius;
+    if (omegaMag > 1e-6) {
+      const normalForce = ball.mass * Physics.gravity;
+      const magnitude =
+        (2 / 5) * Physics.rollingResistance * normalForce * ball.radius;
 
-//     const opp = omega.clone().multiplyScalar(-1 / omegaMag);
+      const opp = omegaxy.clone().multiplyScalar(-1 / omegaMag);
 
-//     const rollingTorque = opp.multiplyScalar(magnitude);
+      const rollingTorque = opp.multiplyScalar(magnitude);
 
-//     torque = torque.add(rollingTorque);
-//   }
-//  const spinTorque = new Vector3(
-//     0,
-//     0,
-//     -Physics.spinFriction * ball.mass * Physics.gravity * ball.radius * Math.sign(ball.angularVelocity.z)
-//   );
-//   torque = torque.add(spinTorque);
-//   return torque;
-// }
+      torque = torque.add(rollingTorque);
+    }
+    const spinOmega = new Vector3(0, 0, ball.angularVelocity.z);
+
+    let spinTorque = new Vector3();
+
+    if (spinOmega.length() > 0) {
+      spinTorque = spinOmega
+        .normalize()
+        .multiplyScalar(
+          -Physics.spinFriction * ball.mass * Physics.gravity * ball.radius,
+        );
+    }
+    torque = torque.add(spinTorque);
+    return torque;
+  }
+  // static getTorque(ball: Ball): Vector3 {
+  //   const slip = this.getSlipVector(ball);
+  //   const friction = this.getFriction(ball);
+
+  //   let torque = new Vector3(
+  //     friction.y * ball.radius,
+  //     -friction.x * ball.radius,
+  //     0
+  //   );
+
+  //   // 🔥 NEW: rolling resistance (even when slip = 0)
+  //   const omega = ball.angularVelocity;
+  //   const omegaMag = omega.length();
+
+  //   if (omegaMag > 1e-6) {
+  //     const normalForce = ball.mass * Physics.gravity;
+  //     const magnitude =
+  //       Physics.rollingResistance * normalForce * ball.radius;
+
+  //     const opp = omega.clone().multiplyScalar(-1 / omegaMag);
+
+  //     const rollingTorque = opp.multiplyScalar(magnitude);
+
+  //     torque = torque.add(rollingTorque);
+  //   }
+  //  const spinTorque = new Vector3(
+  //     0,
+  //     0,
+  //     -Physics.spinFriction * ball.mass * Physics.gravity * ball.radius * Math.sign(ball.angularVelocity.z)
+  //   );
+  //   torque = torque.add(spinTorque);
+  //   return torque;
+  // }
   static getSlipVector(ball: Ball): Vector3 {
     const omegaCrossR = new Vector3(
       -ball.angularVelocity.y * ball.radius,
       ball.angularVelocity.x * ball.radius,
-    0 ,
+      0,
     );
 
     const slip = ball.velocity.add(omegaCrossR);
 
     if (slip.length() < 0.01) {
-      return new Vector3(0,0,0);
+      return new Vector3(0, 0, 0);
     }
 
     return slip;
@@ -190,7 +180,6 @@ if (spinOmega.length() > 0) {
     ball.position = new Vector3(ball.position.x, ball.position.y, ball.radius);
   }
 
- 
   static resolveWallCollision(ball: Ball): void {
     const halfX = 2.84 / 2;
     const halfY = 1.42 / 2;
@@ -209,11 +198,9 @@ if (spinOmega.length() > 0) {
 
       const vN = vContact.dot(normal);
 
-     
       if (vN >= 0) return;
 
       const invMass = 1 / ball.mass;
-
 
       const rCrossN = rContact.cross(normal);
       const rotationalN = rCrossN.lengthSq() / ball.inertia;
@@ -221,7 +208,6 @@ if (spinOmega.length() > 0) {
       const jN = (-(1 + e) * vN) / (invMass + rotationalN);
 
       const impulseN = normal.multiplyScalar(jN);
-
 
       const tangent = vContact.subtract(normal.multiplyScalar(vN));
 
@@ -247,9 +233,7 @@ if (spinOmega.length() > 0) {
 
       const totalImpulse = impulseN.add(impulseT);
 
-
       ball.velocity = ball.velocity.add(totalImpulse.multiplyScalar(invMass));
-
 
       const deltaOmega = rContact
         .cross(totalImpulse)
@@ -296,8 +280,12 @@ if (spinOmega.length() > 0) {
     const crossZ = (omegaZ: number, r: Vector3) =>
       new Vector3(-omegaZ * r.y, omegaZ * r.x, 0);
 
-   const vA_contact = a.velocity.clone().add(a.angularVelocity.clone().cross(rA));
-const vB_contact = b.velocity.clone().add(b.angularVelocity.clone().cross(rB));
+    const vA_contact = a.velocity
+      .clone()
+      .add(a.angularVelocity.clone().cross(rA));
+    const vB_contact = b.velocity
+      .clone()
+      .add(b.angularVelocity.clone().cross(rB));
     const relVel = vA_contact.clone().subtract(vB_contact);
     const velAlongNormal = relVel.x * normal.x + relVel.y * normal.y;
 
@@ -387,8 +375,6 @@ const vB_contact = b.velocity.clone().add(b.angularVelocity.clone().cross(rB));
     return torque.multiplyScalar(1 / inertia);
   }
 
-  
-
   static updateAngularVelocity(
     ball: Ball,
     angularAcceleration: Vector3,
@@ -408,12 +394,35 @@ const vB_contact = b.velocity.clone().add(b.angularVelocity.clone().cross(rB));
       return;
     }
 
-
-if (ball.velocity.length() < 0.01 && ball.angularVelocity.length() < 0.05) {
-    ball.angularVelocity = new Vector3(0, 0, 0);
-}
-    
+    if (ball.velocity.length() < 0.01 && ball.angularVelocity.length() < 0.05) {
+      ball.angularVelocity = new Vector3(0, 0, 0);
+    }
   }
 
-  
+  static checkHoleCollision(ball: Ball): boolean {
+    const halfX = 2.84 / 2;
+    const halfY = 1.42 / 2;
+    // جرب هذه القيمة، فهي أقرب لواقع حجم كرات البلياردو
+    const holeRadius = 0.045;
+    // إحداثيات الثقوب الستة (4 زوايا + 2 في المنتصف)
+    const holes = [
+      // الثقوب الأربعة للزوايا
+      { x: halfX, y: halfY },
+      { x: halfX, y: -halfY },
+      { x: -halfX, y: halfY },
+      { x: -halfX, y: -halfY },
+      // الثقبان في منتصف الجوانب الطويلة
+      { x: 0, y: halfY },
+      { x: 0, y: -halfY },
+    ];
+
+    for (const hole of holes) {
+      const dx = ball.position.x - hole.x;
+      const dy = ball.position.y - hole.y;
+      if (dx * dx + dy * dy < holeRadius * holeRadius) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
