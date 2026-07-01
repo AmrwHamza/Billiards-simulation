@@ -15,7 +15,16 @@ export class Ball {
   public angularAcceleration: Vector3;
   public torque: Vector3;
 
+
+public qW: number;
+  public qX: number;
+  public qY: number;
+  public qZ: number;
+
+
   private static textureLoader = new THREE.TextureLoader();
+
+
 
   constructor(x: number, y: number, radius: number, mass: number, id: number) {
     this.radius = radius;
@@ -28,6 +37,11 @@ export class Ball {
     this.angularVelocity = new Vector3(0, 0, 0);
     this.angularAcceleration = new Vector3(0, 0, 0);
     this.torque = new Vector3(0, 0, 0);
+
+this.qW = 1.0;
+    this.qX = 0.0;
+    this.qY = 0.0;
+    this.qZ = 0.0;
 
     const ballTexture = Ball.textureLoader.load(`textures/Ball_${id}.jpg`);
     ballTexture.colorSpace = THREE.SRGBColorSpace;
@@ -59,21 +73,8 @@ export class Ball {
 
   public syncMesh(): void {
     this.mesh.position.set(this.position.x, this.position.z, this.position.y);
+    this.mesh.quaternion.set(this.qX, this.qY, this.qZ, this.qW);
   }
 
-  // private updateRotation(dt: number): void {
-  //   const w = this.angularVelocity.length();
-  //   if (w < 0.0001) return;
-
-  //   const axis = new THREE.Vector3(
-  //     this.angularVelocity.x,
-  //     this.angularVelocity.z,
-  //     this.angularVelocity.y,
-  //   ).normalize();
-
-  //   const deltaRotation = new THREE.Quaternion();
-  //   deltaRotation.setFromAxisAngle(axis, -w * dt);
-
-  //   this.mesh.quaternion.premultiply(deltaRotation);
-  // }
+ 
 }

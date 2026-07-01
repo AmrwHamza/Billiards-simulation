@@ -59,7 +59,7 @@ export class ControlPanel {
   private setupPhysicsUI() {
     const folder = this.gui.addFolder("إعدادات الفيزياء والكتل");
 
-    folder.add(Physics, "friction", 0, 1, 0.01).name("احتكاك الأرضية");
+    folder.add(Physics, "friction", 0, 0.4, 0.01).name("احتكاك الأرضية");
 
     folder
       .add(Physics, "rollingResistance", 0, 0.05, 0.001)

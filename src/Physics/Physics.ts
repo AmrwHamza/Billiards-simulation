@@ -1,6 +1,5 @@
 import { Ball } from "../enviroment/Ball";
 import { Vector3 } from "../math/Vector3";
-import * as THREE from "three";
 
 export class Physics {
   static gravity = 9.81;
@@ -9,61 +8,63 @@ export class Physics {
   public static rollingResistance = 0.01;
   public static spinFriction = 0.008;
 
-// الدالة الاولى يلي هي مسؤولة عن كل شي فعليا (ما عدا التصادم ) مسؤولة عن تطبيق تتابع الحركة 
+  // الدالة الاولى يلي هي مسؤولة عن كل شي فعليا (ما عدا التصادم ) مسؤولة عن تطبيق تتابع الحركة
   public static update(ball: Ball, dt: number): void {
-    const totalForce = this.getTotalForce(ball);// قانون نيوتن الثاني مجموع القوى 
-    const acceleration = this.forceToAcceleration(totalForce, ball.mass);// تحديث التسارع 
-    this.updateVelocity(ball, acceleration, dt);//تحديث السرعة
+    //الحركة الخطية
+    const totalForce = this.getTotalForce(ball); // قانون نيوتن الثاني مجموع القوى
+    const acceleration = this.forceToAcceleration(totalForce, ball.mass); // تحديث التسارع
+    this.updateVelocity(ball, acceleration, dt); //تحديث السرعة
+    //الحركة الدورانية
+    const totalTorque = this.getTorque(ball); // مجموع العزوم
+    const angularAcceleration = this.torqueToAngularAcceleration(totalTorque,ball.inertia); //التسارع الزاوي
+    this.updateAngularVelocity(ball, angularAcceleration, dt); // تحديث السرعة الزاوية
 
-    const totalTorque = this.getTorque(ball);// مجموع العزوم 
-    const angularAcceleration = this.torqueToAngularAcceleration(
-      totalTorque,
-      ball.inertia,
-    ); //التسارع الزاوي
+    //تحديث الموقع والدوران
+    this.updatePosition(ball, dt); //تحديث الموقع
+    this.updateRotation(ball, dt); //تحديث الدوران
 
-    this.updateAngularVelocity(ball, angularAcceleration, dt);// تحديث السرعة الزاوية
-
-    this.updatePosition(ball, dt);//تحديث الموقع
-    this.updateRotation(ball,dt);
-
+    //فحص ومعالجة الاصطدام بأي حائئط 
     this.resolveWallCollision(ball);
 
-    const STOP_VELOCITY_THRESHOLD = 0.01;
-    const STOP_ANGULAR_THRESHOLD = 0.01;
-
+//اذا السرعات صغيرة كثيرة منوقف الكرات بالسرعتين
+    const stopVelocity = 0.01;
+    const stopAW = 0.01;
     if (
-      ball.velocity.length() < STOP_VELOCITY_THRESHOLD &&
-      ball.angularVelocity.length() < STOP_ANGULAR_THRESHOLD
+      ball.velocity.length() < stopVelocity &&
+      ball.angularVelocity.length() < stopAW
     ) {
       ball.velocity = new Vector3(0, 0, 0);
       ball.angularVelocity = new Vector3(0, 0, 0);
     }
-    // ball.angularVelocity.z = 0;
   }
 
+  //حساب محصلة القوى (قانون نيوتن الثاني )
   static getTotalForce(ball: Ball): Vector3 {
-    const gravity = this.getGravity(ball);
-    const normal = this.getNormal(ball);
-    const friction = this.getFriction(ball);
 
-    return gravity.add(normal).add(friction);
+    const gravity = this.getGravity(ball);//الجاذبية
+    const normal = this.getNormal(ball);//رد فعل الارض
+    const friction = this.getFriction(ball);//الاحتكاك
+
+    return gravity.add(normal).add(friction); //المجموع
   }
 
+  //قوة الجاذبية
   static getGravity(ball: Ball): Vector3 {
     return new Vector3(0, 0, -ball.mass * Physics.gravity);
   }
 
+  //قوة رد الفعل 
   static getNormal(ball: Ball): Vector3 {
     return new Vector3(0, 0, ball.mass * Physics.gravity);
   }
 
+  //قوة الاحتكاك
   static getFriction(ball: Ball): Vector3 {
-    const slip = this.getSlipVector(ball);
-    const slipSpeed = slip.length();
-    const vSpeed = ball.velocity.length();
+    const contactVelocity = this.getContactVelocity(ball);
+    const contactVelocitySpeed = contactVelocity.length();
 
-    if (slipSpeed > 1e-6) {
-      const direction = slip.normalize();
+    if (contactVelocitySpeed > 1e-6) {
+      const direction = contactVelocity.normalize();
       const magnitude = this.friction * ball.mass * Physics.gravity;
       return direction.multiplyScalar(-magnitude);
     }
@@ -71,63 +72,79 @@ export class Physics {
     return new Vector3(0, 0, 0);
   }
 
-  static getTorque(ball: Ball): Vector3 {
-    const slip = this.getSlipVector(ball);
-    const friction = this.getFriction(ball);
-
-    let torque = new Vector3(
-      friction.y * ball.radius,
-      -friction.x * ball.radius,
-      0,
-    );
-
-    // 🔥 NEW: rolling resistance (even when slip = 0)
-    const omega = ball.angularVelocity;
-    const omegaxy = new Vector3(omega.x, omega.y, 0);
-
-    const omegaMag = omegaxy.length();
-
-    if (omegaMag > 1e-6) {
-      const normalForce = ball.mass * Physics.gravity;
-      const magnitude =
-        (2 / 5) * Physics.rollingResistance * normalForce * ball.radius;
-
-      const opp = omegaxy.clone().multiplyScalar(-1 / omegaMag);
-
-      const rollingTorque = opp.multiplyScalar(magnitude);
-
-      torque = torque.add(rollingTorque);
-    }
-    const spinOmega = new Vector3(0, 0, ball.angularVelocity.z);
-
-    let spinTorque = new Vector3();
-
-    if (spinOmega.length() > 0) {
-      spinTorque = spinOmega
-        .normalize()
-        .multiplyScalar(
-          -Physics.spinFriction * ball.mass * Physics.gravity * ball.radius,
-        );
-    }
-    torque = torque.add(spinTorque);
-    return torque;
-  }
-
-  static getSlipVector(ball: Ball): Vector3 {
-    const omegaCrossR = new Vector3(
+//حساب ششعاع سرعة التماس 
+ static getContactVelocity(ball: Ball): Vector3 {
+    const wCrossR = new Vector3(
       -ball.angularVelocity.y * ball.radius,
       ball.angularVelocity.x * ball.radius,
       0,
     );
 
-    const slip = ball.velocity.add(omegaCrossR);
+    const contactVelocity = ball.velocity.add(wCrossR);
 
-    if (slip.length() < 0.01) {
+
+    if (contactVelocity.length() < 0.01) {
       return new Vector3(0, 0, 0);
     }
 
-    return slip;
+    return contactVelocity;
   }
+
+
+ static getTorque(ball: Ball): Vector3 {
+
+  let torque = this.getSlipTorque(ball);
+  torque = torque.add(this.getRollingTorque(ball));
+  torque = torque.add(this.getSpinTorque(ball));
+
+  return torque;
+}
+
+static getSlipTorque(ball: Ball): Vector3 {
+  const friction = this.getFriction(ball);
+
+  return new Vector3(
+    friction.y * ball.radius,
+    -friction.x * ball.radius,
+    0,
+  );
+}
+
+static getRollingTorque(ball: Ball): Vector3 {
+  //هون هم نطالع اوميغا بس  x y 
+  const w = ball.angularVelocity;
+  const wXwY = new Vector3(w.x, w.y, 0);
+
+  const wMag = wXwY.length();
+  if (wMag < 1e-6) return new Vector3(0, 0, 0);
+
+  
+
+  const magnitude =
+    (2 / 5) * Physics.rollingResistance * ball.mass * Physics.gravity* ball.radius;
+
+  const direction = wXwY.normalize().multiplyScalar(-1);
+
+
+  //ها العزم يلي رجع
+  return direction.multiplyScalar(magnitude);
+}
+
+
+static getSpinTorque(ball: Ball): Vector3 {
+  const spin = ball.angularVelocity.z;
+
+  if (Math.abs(spin) < 1e-6) {
+    return new Vector3(0, 0, 0);
+  }
+
+  return new Vector3(0, 0, -spin)
+    .normalize()
+    .multiplyScalar(
+      Physics.spinFriction * ball.mass * Physics.gravity * ball.radius,
+    );
+}
+
   static forceToAcceleration(force: Vector3, mass: number): Vector3 {
     return force.multiplyScalar(1 / mass);
   }
@@ -136,150 +153,191 @@ export class Physics {
     ball.velocity = ball.velocity.add(acceleration.multiplyScalar(dt));
   }
 
- static updatePosition(ball: Ball, dt: number): void {
+  static updatePosition(ball: Ball, dt: number): void {
     ball.position = ball.position.add(ball.velocity.multiplyScalar(dt));
 
     ball.position = new Vector3(ball.position.x, ball.position.y, ball.radius);
   }
+static updateRotation(ball: Ball, dt: number): void {
+  // 1. إسقاط السرعات الزاوية وعكس الإشارات لتطابق توجيه محاور المحاكمة
+  const wx = -ball.angularVelocity.x;
+  const wy = -ball.angularVelocity.z; 
+  const wz = -ball.angularVelocity.y; 
 
+  const wLength = Math.sqrt(wx * wx + wy * wy + wz * wz);
+  if (wLength < 0.0001) return;
 
-static updateRotation(ball : Ball,dt: number): void {
-  
-  
-  const w = ball.angularVelocity.length();
-    if (w < 0.0001) return;
+  // 2. تخزين القيم الحالية في متغيرات محلية لإجراء العمليات الحسابية عليها
+  const qw = ball.qW;
+  const qx = ball.qX;
+  const qy = ball.qY;
+  const qz = ball.qZ;
 
-    const axis = new THREE.Vector3(
-      ball.angularVelocity.x,
-      ball.angularVelocity.z,
-      ball.angularVelocity.y,
-    ).normalize();
+  // 3. حساب التغير اللحظي (dq) لكل مركب عبر معادلة فك ضرب الكواتيرنيون يدوياً
+  const dq_w = 0.5 * dt * (-wx * qx - wy * qy - wz * qz);
+  const dq_x = 0.5 * dt * ( wx * qw + wy * qz - wz * qy);
+  const dq_y = 0.5 * dt * (-wx * qz + wy * qw + wz * qx);
+  const dq_z = 0.5 * dt * ( wx * qy - wy * qx + wz * qw);
 
-    const deltaRotation = new THREE.Quaternion();
-    deltaRotation.setFromAxisAngle(axis, -w * dt);
+  // 4. إجراء تكامل أويلر العددي بالجمع المباشر على متغيرات الكرة
+  ball.qW += dq_w;
+  ball.qX += dq_x;
+  ball.qY += dq_y;
+  ball.qZ += dq_z;
 
-    ball.mesh.quaternion.premultiply(deltaRotation);
+  // 5. حساب معيار الطول (Magnitude) يدوياً لإعادة التطبيع (Normalization)
+  const magnitude = Math.sqrt(
+    ball.qW * ball.qW +
+    ball.qX * ball.qX +
+    ball.qY * ball.qY +
+    ball.qZ * ball.qZ
+  );
+
+  if (magnitude > 0) {
+    ball.qW /= magnitude;
+    ball.qX /= magnitude;
+    ball.qY /= magnitude;
+    ball.qZ /= magnitude;
   }
+}
 
-  static resolveWallCollision(ball: Ball): void {
-    const halfX = 2.84 / 2;
-    const halfY = 1.42 / 2;
+static resolveWallCollision(ball: Ball): void {
+    const halfX = 2.84 / 2; // تمثل x_wall في التقرير
+    const halfY = 1.42 / 2; // تمثل y_wall في التقرير
     const r = ball.radius;
 
+    let collided = false;
+    let normal = new Vector3();
+    let wallType = ""; // متغير لتحديد أي جدار صدمنا لنصحح الموضع بموجبه
+
+    // 1. كشف التصادم (صفحة 17)
+    if (ball.position.x + r > halfX) { // جدار يمين
+        collided = true;
+        normal = new Vector3(-1, 0, 0);
+        wallType = "right";
+    } 
+    else if (ball.position.x - r < -halfX) { // جدار يسار
+        collided = true;
+        normal = new Vector3(1, 0, 0);
+        wallType = "left";
+    } 
+    else if (ball.position.y + r > halfY) { // جدار أعلى
+        collided = true;
+        normal = new Vector3(0, -1, 0);
+        wallType = "top";
+    } 
+    else if (ball.position.y - r < -halfY) { // جدار أسفل
+        collided = true;
+        normal = new Vector3(0, 1, 0);
+        wallType = "bottom";
+    }
+
+    if (!collided) return;
+
+    // الحسابات الفيزيائية (السرعات والدفعات العمودية والاحتكاكية)
     const e = Physics.restitution;
     const mu = 0.15;
+    const invMass = 1 / ball.mass;
 
-    const solveWall = (normal: Vector3, penetration: number) => {
-      ball.position = ball.position.add(normal.multiplyScalar(penetration));
+    const rContact = normal.multiplyScalar(-r);
+    const omegaCrossR = ball.angularVelocity.cross(rContact);
+    const vContact = ball.velocity.add(omegaCrossR);
 
-      const rContact = normal.multiplyScalar(-r);
-      const omegaCrossR = ball.angularVelocity.cross(rContact);
+    const vN = vContact.dot(normal);
+    if (vN >= 0) return; 
 
-      const vContact = ball.velocity.add(omegaCrossR);
+    // الدفعة العمودية JN (صفحة 18)
+    const rCrossN = rContact.cross(normal);
+    const rotationalN = rCrossN.lengthSq() / ball.inertia;
+    const jN = (-(1 + e) * vN) / (invMass + rotationalN);
+    const impulseN = normal.multiplyScalar(jN);
 
-      const vN = vContact.dot(normal);
+    // الدفعة الاحتكاكية JT (صفحة 18)
+    const tangent = vContact.subtract(normal.multiplyScalar(vN));
+    let impulseT = new Vector3();
 
-      if (vN >= 0) return;
-
-      const invMass = 1 / ball.mass;
-
-      const rCrossN = rContact.cross(normal);
-      const rotationalN = rCrossN.lengthSq() / ball.inertia;
-
-      const jN = (-(1 + e) * vN) / (invMass + rotationalN);
-
-      const impulseN = normal.multiplyScalar(jN);
-
-      const tangent = vContact.subtract(normal.multiplyScalar(vN));
-
-      let impulseT = new Vector3();
-
-      if (tangent.length() > 1e-6) {
+    if (tangent.length() > 1e-6) {
         const t = tangent.normalize();
-
         const vt = vContact.dot(t);
-
         const rCrossT = rContact.cross(t);
-
         const rotationalT = rCrossT.lengthSq() / ball.inertia;
 
         let jT = -vt / (invMass + rotationalT);
-
         const maxFriction = mu * Math.abs(jN);
-
         jT = Math.max(-maxFriction, Math.min(maxFriction, jT));
-
+        
         impulseT = t.multiplyScalar(jT);
-      }
-
-      const totalImpulse = impulseN.add(impulseT);
-
-      ball.velocity = ball.velocity.add(totalImpulse.multiplyScalar(invMass));
-
-      const deltaOmega = rContact
-        .cross(totalImpulse)
-        .multiplyScalar(1 / ball.inertia);
-
-      ball.angularVelocity = ball.angularVelocity.add(deltaOmega);
-    };
-
-    // جدار يمين
-    if (ball.position.x + r > halfX) {
-      solveWall(new Vector3(-1, 0, 0), ball.position.x + r - halfX);
     }
 
-    // جدار يسار
-    if (ball.position.x - r < -halfX) {
-      solveWall(new Vector3(1, 0, 0), -halfX - (ball.position.x - r));
-    }
+    const totalImpulse = impulseN.add(impulseT);
 
-    // جدار أعلى
-    if (ball.position.y + r > halfY) {
-      solveWall(new Vector3(0, -1, 0), ball.position.y + r - halfY);
-    }
+    // ------------------------------------------------------------------
+    // خامساً: تطبيق الدفعات وتصحيح الموضع (مطابق لصفحة 19 في التقرير تماماً)
+    // ------------------------------------------------------------------
+    
+    // أولاً: تحديث السرعة الخطية والزاوية بناءً على الدفعات
+    ball.velocity = ball.velocity.add(totalImpulse.multiplyScalar(invMass));
+    
+    const deltaOmega = rContact.cross(totalImpulse).multiplyScalar(1 / ball.inertia);
+    ball.angularVelocity = ball.angularVelocity.add(deltaOmega);
 
-    // جدار أسفل
-    if (ball.position.y - r < -halfY) {
-      solveWall(new Vector3(0, 1, 0), -halfY - (ball.position.y - r));
+    // ثانياً: تصحيح موضع الكرة بإعادتها إلى حدود الطاولة مباشرة (حسب نوع الجدار)
+    if (wallType === "right") {
+        ball.position.x = halfX - r;       // x = x_wall - r
+    } else if (wallType === "left") {
+        ball.position.x = -halfX + r;      // x = -x_wall + r
+    } else if (wallType === "top") {
+        ball.position.y = halfY - r;       // y = y_wall - r
+    } else if (wallType === "bottom") {
+        ball.position.y = -halfY + r;      // y = -y_wall + r
     }
-  }
+}
   static resolveBallCollision(a: Ball, b: Ball): void {
-    const delta = b.position.clone().subtract(a.position);
+    const delta = b.position.clone().subtract(a.position);//حساب فرق المسافة
     delta.z = 0;
 
-    const distSq = delta.x * delta.x + delta.y * delta.y;
-    const minDist = a.radius + b.radius;
+    const distSq = delta.x * delta.x + delta.y * delta.y;//الطويلة 
+    const minDist = a.radius + b.radius;//شرط المسافة
+    if (distSq > minDist * minDist ) return; //هون عم نشوف شرط عدم تطبيق التصادم 
 
-    if (distSq > minDist * minDist || distSq === 0) return;
+    //اذا وصل لهون معناتو في تصادم 
 
     const dist = Math.sqrt(distSq);
-    const normal = delta.clone().multiplyScalar(1 / dist);
+    //الشعاع الناظمي
+    const normal = delta.clone().normalize();
 
     const rA = normal.clone().multiplyScalar(a.radius);
     const rB = normal.clone().multiplyScalar(-b.radius);
 
-    const crossZ = (omegaZ: number, r: Vector3) =>
-      new Vector3(-omegaZ * r.y, omegaZ * r.x, 0);
-
+  
+//سرعة نقطتي التماس
     const vA_contact = a.velocity
       .clone()
       .add(a.angularVelocity.clone().cross(rA));
     const vB_contact = b.velocity
       .clone()
       .add(b.angularVelocity.clone().cross(rB));
+  
+      //الفرق بين السرعتين
     const relVel = vA_contact.clone().subtract(vB_contact);
     const velAlongNormal = relVel.x * normal.x + relVel.y * normal.y;
 
     if (velAlongNormal < 0) return; //////////////////////////////
     const e = Physics.restitution;
     const ballFriction = 0.05;
-
-    const invMassA = 1 / a.mass;
+//مقلوبي الكتل 
+    const invMassA = 1 / a.mass; 
     const invMassB = 1 / b.mass;
     const invMassSum = invMassA + invMassB;
+// 1. حساب الضرب التقاطعي لعزم الدوران على المحور العمودي الطبيعي (كما في الصفحة 15 من التقرير)
+const rAcrossN = rA.x * normal.y - rA.y * normal.x;
+const rBcrossN = rB.x * normal.y - rB.y * normal.x;
 
-    let jN = -(1 + e) * velAlongNormal;
-    jN /= invMassSum;
+// 2. حساب الدفعة العمودية (القانون الشامل يجمع الكتل والعزوم معاً في المقام)
+let jN = -(1 + e) * velAlongNormal;
+
+// المقام هنا يحتوي على: (الكتل الفعالة الممسوحة) + (حدود القصور الذاتي للدوران)
+jN /= (invMassSum + (rAcrossN * rAcrossN) / a.inertia + (rBcrossN * rBcrossN) / b.inertia);
 
     const impulseNormal = normal.clone().multiplyScalar(jN);
 
@@ -287,9 +345,9 @@ static updateRotation(ball : Ball,dt: number): void {
       .clone()
       .subtract(normal.clone().multiplyScalar(velAlongNormal));
     const tangentLen = tangent.length();
+/////////////////
 
     let impulseTangent = new Vector3(0, 0, 0);
-
     if (tangentLen > 0.0001) {
       tangent = tangent.multiplyScalar(1 / tangentLen);
       const velAlongTangent = relVel.x * tangent.x + relVel.y * tangent.y;
@@ -366,7 +424,7 @@ static updateRotation(ball : Ball,dt: number): void {
     );
 
     const vSpeed = ball.velocity.length();
-    const slipSpeed = this.getSlipVector(ball).length();
+    const slipSpeed = this.getContactVelocity(ball).length();
 
     // إيقاف نهائي عند التوقف شبه التام
     if (vSpeed < 0.0005 && slipSpeed < 0.0005) {
@@ -406,8 +464,4 @@ static updateRotation(ball : Ball,dt: number): void {
     }
     return false;
   }
-
-
- 
-
 }
