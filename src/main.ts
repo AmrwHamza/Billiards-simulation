@@ -14,7 +14,7 @@ import { createRack } from "./setup/rack";
 import { createRenderer } from "./setup/renderer";
 import { setupWorld } from "./setup/world";
 import { createCamera } from "./setup/camera";
-import { PhysicsVisualizer } from "./PhysicsVisualizer.ts";
+import { PhysicsVisualizer } from "./controls/PhysicsVisualizer.ts";
 
 //المشهد
 const scene = new THREE.Scene();

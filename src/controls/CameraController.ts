@@ -23,7 +23,7 @@ export class CameraController {
 
     this.orbit = new OrbitControls(camera, dom);
     this.orbit.enableDamping = true;
-    this.orbit.dampingFactor = 0.05;
+    this.orbit.dampingFactor = 0.08;
     this.orbit.target.set(0, 0, 0);
 
     window.addEventListener("keydown", (e) => this.onKeyDown(e));

@@ -44,7 +44,7 @@ export class ControlPanel {
     const folder = this.gui.addFolder("التحكم بالعصا");
 
     this.angleController = folder
-      .add(this.config, "angleDeg", 0, 360, 0.1)
+      .add(this.config, "angleDeg", -180, 180, 0.1)
       .name("الزاوية");
 
     this.powerController = folder
@@ -114,7 +114,7 @@ export class ControlPanel {
   }
 
   public update() {
-    const speed = 0.3;
+    const speed = 0.012;
     const powerStep = 0.02;
 
     let changed = false;

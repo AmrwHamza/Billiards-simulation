@@ -53,7 +53,7 @@ export class Ball {
 
   public update(dt: number): void {
     Physics.update(this, dt);
-    this.updateRotation(dt);
+    // this.updateRotation(dt);
     this.syncMesh();
   }
 
@@ -61,19 +61,19 @@ export class Ball {
     this.mesh.position.set(this.position.x, this.position.z, this.position.y);
   }
 
-  private updateRotation(dt: number): void {
-    const w = this.angularVelocity.length();
-    if (w < 0.0001) return;
+  // private updateRotation(dt: number): void {
+  //   const w = this.angularVelocity.length();
+  //   if (w < 0.0001) return;
 
-    const axis = new THREE.Vector3(
-      this.angularVelocity.x,
-      this.angularVelocity.z,
-      this.angularVelocity.y,
-    ).normalize();
+  //   const axis = new THREE.Vector3(
+  //     this.angularVelocity.x,
+  //     this.angularVelocity.z,
+  //     this.angularVelocity.y,
+  //   ).normalize();
 
-    const deltaRotation = new THREE.Quaternion();
-    deltaRotation.setFromAxisAngle(axis, -w * dt);
+  //   const deltaRotation = new THREE.Quaternion();
+  //   deltaRotation.setFromAxisAngle(axis, -w * dt);
 
-    this.mesh.quaternion.premultiply(deltaRotation);
-  }
+  //   this.mesh.quaternion.premultiply(deltaRotation);
+  // }
 }

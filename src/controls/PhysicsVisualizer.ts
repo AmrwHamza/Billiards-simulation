@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { Ball } from "./enviroment/Ball";
+import type { Ball } from "../enviroment/Ball";
+
 
 export class PhysicsVisualizer {
   private velocityArrow: THREE.ArrowHelper;

@@ -1,30 +1,30 @@
 import { Ball } from "../enviroment/Ball";
 import { Vector3 } from "../math/Vector3";
+import * as THREE from "three";
 
 export class Physics {
   static gravity = 9.81;
   public static friction = 0.2;
   static restitution = 0.9;
-
   public static rollingResistance = 0.01;
   public static spinFriction = 0.008;
+
+// الدالة الاولى يلي هي مسؤولة عن كل شي فعليا (ما عدا التصادم ) مسؤولة عن تطبيق تتابع الحركة 
   public static update(ball: Ball, dt: number): void {
-    const totalForce = this.getTotalForce(ball);
+    const totalForce = this.getTotalForce(ball);// قانون نيوتن الثاني مجموع القوى 
+    const acceleration = this.forceToAcceleration(totalForce, ball.mass);// تحديث التسارع 
+    this.updateVelocity(ball, acceleration, dt);//تحديث السرعة
 
-    const acceleration = this.forceToAcceleration(totalForce, ball.mass);
-
-    this.updateVelocity(ball, acceleration, dt);
-
-    const totalTorque = this.getTorque(ball);
-
+    const totalTorque = this.getTorque(ball);// مجموع العزوم 
     const angularAcceleration = this.torqueToAngularAcceleration(
       totalTorque,
       ball.inertia,
-    );
+    ); //التسارع الزاوي
 
-    this.updateAngularVelocity(ball, angularAcceleration, dt);
+    this.updateAngularVelocity(ball, angularAcceleration, dt);// تحديث السرعة الزاوية
 
-    this.updatePosition(ball, dt);
+    this.updatePosition(ball, dt);//تحديث الموقع
+    this.updateRotation(ball,dt);
 
     this.resolveWallCollision(ball);
 
@@ -136,10 +136,29 @@ export class Physics {
     ball.velocity = ball.velocity.add(acceleration.multiplyScalar(dt));
   }
 
-  static updatePosition(ball: Ball, dt: number): void {
+ static updatePosition(ball: Ball, dt: number): void {
     ball.position = ball.position.add(ball.velocity.multiplyScalar(dt));
 
     ball.position = new Vector3(ball.position.x, ball.position.y, ball.radius);
+  }
+
+
+static updateRotation(ball : Ball,dt: number): void {
+  
+  
+  const w = ball.angularVelocity.length();
+    if (w < 0.0001) return;
+
+    const axis = new THREE.Vector3(
+      ball.angularVelocity.x,
+      ball.angularVelocity.z,
+      ball.angularVelocity.y,
+    ).normalize();
+
+    const deltaRotation = new THREE.Quaternion();
+    deltaRotation.setFromAxisAngle(axis, -w * dt);
+
+    ball.mesh.quaternion.premultiply(deltaRotation);
   }
 
   static resolveWallCollision(ball: Ball): void {
@@ -365,7 +384,7 @@ export class Physics {
     const halfX = 2.84 / 2;
     const halfY = 1.42 / 2;
     // جرب هذه القيمة، فهي أقرب لواقع حجم كرات البلياردو
-    const holeRadius = 0.045;
+    const holeRadius = 0.055;
     // إحداثيات الثقوب الستة (4 زوايا + 2 في المنتصف)
     const holes = [
       // الثقوب الأربعة للزوايا
@@ -387,4 +406,8 @@ export class Physics {
     }
     return false;
   }
+
+
+ 
+
 }
