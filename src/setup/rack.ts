@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { Ball } from "../enviroment/Ball";
+import { Ball } from "../environment/Ball";
 
 const BALL_RADIUS = 0.028575;
 const BALL_MASS = 0.17;
@@ -51,4 +51,3 @@ export function createRack(scene: THREE.Scene, balls: Ball[]) {
     }
   }
 }
-

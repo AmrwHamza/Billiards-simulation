@@ -16,7 +16,7 @@ export class Ball {
   public torque: Vector3;
 
 
-public qW: number;
+  public qW: number;
   public qX: number;
   public qY: number;
   public qZ: number;

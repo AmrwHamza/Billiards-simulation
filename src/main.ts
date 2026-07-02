@@ -1,15 +1,15 @@
 import * as THREE from "three";
-import { Table } from "./enviroment/Table.ts";
+import { Table } from "./environment/Table.ts";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { Ball } from "./enviroment/Ball.ts";
+import { Ball } from "./environment/Ball.ts";
 import { Physics } from "./Physics/Physics.ts";
 // import { PhysicsVisualizer } from "./PhysicsVisualizer";
-import { Lighting } from "./enviroment/Lighting";
-import { Room } from "./enviroment/Room";
+import { Lighting } from "./environment/Lighting.ts";
+import { Room } from "./environment/Room.ts";
 import { CameraController } from "./controls/CameraController";
 
 import { ControlPanel } from "./controls/Control_Panel.ts";
-import { CueStick } from "./enviroment/Cue_Stick.ts";
+import { CueStick } from "./environment/Cue_Stick.ts";
 import { createRack } from "./setup/rack";
 import { createRenderer } from "./setup/renderer";
 import { setupWorld } from "./setup/world";

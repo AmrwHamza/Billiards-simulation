@@ -1,7 +1,7 @@
 import { GUI } from "lil-gui";
 import * as THREE from "three";
-import { Ball } from "../enviroment/Ball";
-import { CueStick } from "../enviroment/Cue_Stick";
+import { Ball } from "../environment/Ball";
+import { CueStick } from "../environment/Cue_Stick";
 import { Physics } from "../Physics/Physics";
 
 export class ControlPanel {
@@ -160,15 +160,15 @@ export class ControlPanel {
     }
   }
 
-  private triggerShot() {
+private triggerShot() {
+    // الواجهة مسؤولة فقط عن تحويل المدخلات إلى الصيغة المطلوبة (Radians)
     const angleRad = THREE.MathUtils.degToRad(this.config.angleDeg);
 
-    const vx = this.config.power * Math.cos(angleRad);
-    const vy = -this.config.power * Math.sin(angleRad);
+    // نطلب من الفيزياء تنفيذ العملية
+    Physics.applyInitialShot(this.targetBall, angleRad, this.config.power);
 
-    this.targetBall.velocity.set(vx, vy, 0);
-
+    // المنطق الخاص بالواجهة (إخفاء العصا) يبقى هنا
     this.cue.hide();
     setTimeout(() => this.cue.show(), 4000);
-  }
+}
 }
