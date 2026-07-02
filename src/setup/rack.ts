@@ -1,53 +1,66 @@
 import * as THREE from "three";
 import { Ball } from "../environment/Ball";
 
-const BALL_RADIUS = 0.028575;
-const BALL_MASS = 0.17;
+export class Rack {
+  private static  BALL_RADIUS = 0.028575;
+  private static  BALL_MASS = 0.17;
 
-const apexX = 0.5;
-const apexY = 0.0;
+  private static  APEX_X = 0.5;
+  private static  APEX_Y = 0.0;
 
-const rackOrder = [1, 9, 2, 10, 8, 3, 11, 4, 12, 5, 13, 6, 14, 15, 7];
+  private static  RACK_ORDER = [
+    1, 9, 2,
+    10, 8, 3,
+    11, 4, 12, 5,
+    13, 6, 14, 15, 7
+  ];
 
-function getRowX(rowNumber: number): number {
-  return apexX + rowNumber * (Math.sqrt(3) * BALL_RADIUS);
-}
-
-function getRowYOffsets(rowNumber: number): number[] {
-  const r = BALL_RADIUS;
-
-  switch (rowNumber) {
-    case 0:
-      return [0];
-    case 1:
-      return [-r, r];
-    case 2:
-      return [-2 * r, 0, 2 * r];
-    case 3:
-      return [-3 * r, -r, r, 3 * r];
-    case 4:
-      return [-4 * r, -2 * r, 0, 2 * r, 4 * r];
-    default:
-      return [];
+  private static getRowX(rowNumber: number): number {
+    return this.APEX_X + rowNumber * (Math.sqrt(3) * this.BALL_RADIUS);
   }
-}
 
-export function createRack(scene: THREE.Scene, balls: Ball[]) {
-  let ballIndex = 0;
+  private static getRowYOffsets(rowNumber: number): number[] {
+    const r = this.BALL_RADIUS;
 
-  for (let row = 0; row < 5; row++) {
-    const x = getRowX(row);
+    switch (rowNumber) {
+      case 0:
+        return [0];
+      case 1:
+        return [-r, r];
+      case 2:
+        return [-2 * r, 0, 2 * r];
+      case 3:
+        return [-3 * r, -r, r, 3 * r];
+      case 4:
+        return [-4 * r, -2 * r, 0, 2 * r, 4 * r];
+      default:
+        return [];
+    }
+  }
 
-    for (const yOffset of getRowYOffsets(row)) {
-      const id = rackOrder[ballIndex];
-      const y = apexY + yOffset;
+  static createRack(scene: THREE.Scene, balls: Ball[]): void {
+    let ballIndex = 0;
 
-      const ball = new Ball(x, y, BALL_RADIUS, BALL_MASS, id);
+    for (let row = 0; row < 5; row++) {
+      const x = this.getRowX(row);
 
-      balls.push(ball);
-      scene.add(ball.mesh);
+      for (const yOffset of this.getRowYOffsets(row)) {
+        const id = this.RACK_ORDER[ballIndex];
+        const y = this.APEX_Y + yOffset;
 
-      ballIndex++;
+        const ball = new Ball(
+          x,
+          y,
+          this.BALL_RADIUS,
+          this.BALL_MASS,
+          id
+        );
+
+        balls.push(ball);
+        scene.add(ball.mesh);
+
+        ballIndex++;
+      }
     }
   }
 }

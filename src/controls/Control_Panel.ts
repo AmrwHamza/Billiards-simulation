@@ -3,6 +3,7 @@ import * as THREE from "three";
 import { Ball } from "../environment/Ball";
 import { CueStick } from "../environment/Cue_Stick";
 import { Physics } from "../Physics/Physics";
+import type { DataRecorder } from "../DataRecorder";
 
 export class ControlPanel {
   private gui: GUI;
@@ -11,8 +12,13 @@ export class ControlPanel {
   private cue: CueStick;
   private keysPressed: { [key: string]: boolean } = {};
 
+  private recorder: DataRecorder;///////
+private recording = false;
+private stopCounter = 0;
+
+
   private angleController: any;
-  private powerController: any;
+  private velocityController: any;
   private massControllers: any[] = [];
 
   private config = {
@@ -24,13 +30,17 @@ export class ControlPanel {
   private monitoringFolder: any;
   private monitoringValues: Map<number, { v: number; w: number }> = new Map();
 
-  constructor(ball: Ball, balls: Ball[], cue: CueStick) {
+ constructor(ball: Ball, balls: Ball[], cue: CueStick, recorder: DataRecorder) {
     this.targetBall = ball;
     this.balls = balls;
     this.cue = cue;
 
     this.gui = new GUI({ title: "لوحة التحكم" });
     this.gui.domElement.style.width = "400px";
+
+    this.recorder = recorder;//////////////
+
+
 
     window.addEventListener("keydown", (e) => (this.keysPressed[e.key] = true));
     window.addEventListener("keyup", (e) => (this.keysPressed[e.key] = false));
@@ -47,11 +57,18 @@ export class ControlPanel {
       .add(this.config, "angleDeg", -180, 180, 0.1)
       .name("الزاوية");
 
-    this.powerController = folder
-      .add(this.config, "power", 0, 6, 0.1)
-      .name("القوة");
+    this.velocityController = folder
+      .add(this.config, "power", 0, 13, 0.1)
+      .name("السرعة");
 
     folder.add(this.config, "shoot").name("إطلاق");
+
+this.gui.add(
+  {
+    download: () => this.recorder.download(),
+  },
+  "download"
+).name("Download CSV");
 
     folder.open();
   }
@@ -141,11 +158,34 @@ export class ControlPanel {
 
     if (changed) {
       this.angleController.updateDisplay();
-      this.powerController.updateDisplay();
+      this.velocityController.updateDisplay();
     }
 
     const angleRad = THREE.MathUtils.degToRad(this.config.angleDeg);
     this.cue.update(this.targetBall, angleRad, this.config.power);
+//////////////////
+if (!this.recording) return;
+
+const v = this.targetBall.velocity.length();
+const w = this.targetBall.angularVelocity.length();
+
+const isMoving = v > 0.01 || w > 0.01;
+
+// إذا في حركة → سجل طبيعي
+if (isMoving) {
+  this.stopCounter = 0;
+  this.recorder.record(0.016, v, w);
+}
+// إذا توقفت → ابدأ عدّاد توقف
+else {
+  this.stopCounter++;
+
+  // إذا ثابتة لفترة كافية → وقف التسجيل
+  if (this.stopCounter > 30) {
+    this.recording = false;
+  }
+}
+/////////////////////////
 
     this.updateMonitoring();
   }
@@ -167,6 +207,8 @@ private triggerShot() {
     // نطلب من الفيزياء تنفيذ العملية
     Physics.applyInitialShot(this.targetBall, angleRad, this.config.power);
 
+    this.recording = true;
+this.stopCounter = 0;
     // المنطق الخاص بالواجهة (إخفاء العصا) يبقى هنا
     this.cue.hide();
     setTimeout(() => this.cue.show(), 4000);

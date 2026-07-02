@@ -1,6 +1,6 @@
 import * as THREE from "three";
-
-export function createRenderer(camera: THREE.PerspectiveCamera) {
+export class CreatRenderer{
+static  createRenderer(camera: THREE.PerspectiveCamera) {
   const renderer = new THREE.WebGLRenderer({
     antialias: true,
     alpha: false,
@@ -35,4 +35,5 @@ export function createRenderer(camera: THREE.PerspectiveCamera) {
   });
 
   return renderer;
+}
 }

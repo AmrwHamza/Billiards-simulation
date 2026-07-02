@@ -4,7 +4,8 @@ import { Room } from "../environment/Room";
 import { Lighting } from "../environment/Lighting";
 import { CueStick } from "../environment/Cue_Stick";
 
-export function setupWorld(scene: THREE.Scene) {
+export class SetupWorld {
+static setupWorld(scene: THREE.Scene) {
   const table = new Table(2.84, 1.42);
   scene.add(table.mesh);
 
@@ -22,4 +23,5 @@ export function setupWorld(scene: THREE.Scene) {
     room,
     cue,
   };
+}
 }
