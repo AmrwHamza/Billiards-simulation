@@ -13,7 +13,8 @@ import { DataRecorder } from "./DataRecorder";
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x202020);
 //////////////////////////
-
+const axesHelper = new THREE.AxesHelper(1);
+scene.add(axesHelper);
 //الكاميرا
 const camera = MainCamera.createCamera();
 const world = SetupWorld.setupWorld(scene);
@@ -24,6 +25,7 @@ const balls: Ball[] = [];
 
 //الكرة البيضا
 const ball = new Ball(-1, -0, 0.028575, 0.17, 0);
+// const ball = new Ball(-1.3, -0, 0.028575, 0.17, 0);
 balls.push(ball);
 scene.add(ball.mesh);
 /////////////////////////////
@@ -63,8 +65,10 @@ function animate(time: number) {
 console.log("Ball speed:", ball.velocity.length());
 
   
+ 
+
   controller.update();
-  panel.update();
+  panel.update(dt);
   renderer.render(scene, camera);
 
   

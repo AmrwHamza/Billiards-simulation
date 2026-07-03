@@ -38,7 +38,7 @@ export class Ball {
     this.angularAcceleration = new Vector3(0, 0, 0);
     this.torque = new Vector3(0, 0, 0);
 
-this.qW = 1.0;
+    this.qW = 1.0;
     this.qX = 0.0;
     this.qY = 0.0;
     this.qZ = 0.0;

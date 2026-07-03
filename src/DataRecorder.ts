@@ -12,21 +12,21 @@ export class DataRecorder {
     });
   }
 
-  download() {
-    let csv = "time,linearSpeed,angularSpeed\n";
+download() {
+  let csv = "\uFEFFtime,linearSpeed,angularSpeed\n";
 
-    for (const d of this.data) {
-      csv += `${d.t},${d.v},${d.w}\n`;
-    }
-
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "experiment.csv";
-    a.click();
-
-    URL.revokeObjectURL(url);
+  for (const d of this.data) {
+    csv += `${d.t},${d.v},${d.w}\n`;
   }
+
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "experiment.csv";
+  a.click();
+
+  URL.revokeObjectURL(url);
+}
 }

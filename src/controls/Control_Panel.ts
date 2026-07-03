@@ -130,7 +130,7 @@ this.gui.add(
     this.monitoringFolder.close();
   }
 
-  public update() {
+  public update(dt: number) {////delete dt
     const speed = 0.012;
     const powerStep = 0.02;
 
@@ -174,16 +174,17 @@ const isMoving = v > 0.01 || w > 0.01;
 // إذا في حركة → سجل طبيعي
 if (isMoving) {
   this.stopCounter = 0;
-  this.recorder.record(0.016, v, w);
+  this.recorder.record(dt, v, w);
 }
 // إذا توقفت → ابدأ عدّاد توقف
 else {
-  this.stopCounter++;
+  this.recorder.record(dt, v, w);
 
-  // إذا ثابتة لفترة كافية → وقف التسجيل
-  if (this.stopCounter > 30) {
-    this.recording = false;
-  }
+    this.stopCounter++;
+
+    if (this.stopCounter > 30) {
+        this.recording = false;
+    }
 }
 /////////////////////////
 

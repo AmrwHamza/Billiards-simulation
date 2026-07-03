@@ -44,7 +44,7 @@ export class CueStick {
   public update(ball: Ball, angle: number, power: number) {
     this.group.position.set(ball.position.x, ball.radius, ball.position.y);
 
-    this.group.rotation.y = angle;
+    this.group.rotation.y = -angle;
 
     if (this.model) {
       const cueLength = 1.508;
@@ -54,7 +54,6 @@ export class CueStick {
       const offset = -(halfLength + ball.radius + tipGap);
       const pullBack = power * 0.03;
       this.model.position.set(offset - pullBack, 0, 0);
-
     }
   }
 

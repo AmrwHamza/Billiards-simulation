@@ -467,7 +467,7 @@ export class Physics {
 static applyInitialShot(ball: Ball, angleRad: number, velocity: number): void {
     // التحويل من إحداثيات قطبية إلى متجهات (Vector)
     const vx = velocity * Math.cos(angleRad);
-    const vy = -velocity * Math.sin(angleRad); // لاحظ أننا أبقينا الإشارة كما كانت عندك
+    const vy = velocity * Math.sin(angleRad); // لاحظ أننا أبقينا الإشارة كما كانت عندك
 
     // تطبيق السرعة مباشرة على الكرة
     ball.velocity.set(vx, vy, 0);
