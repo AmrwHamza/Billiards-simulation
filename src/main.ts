@@ -13,8 +13,8 @@ import { DataRecorder } from "./DataRecorder";
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x202020);
 //////////////////////////
-const axesHelper = new THREE.AxesHelper(1);
-scene.add(axesHelper);
+// const axesHelper = new THREE.AxesHelper(1);
+// scene.add(axesHelper);
 //الكاميرا
 const camera = MainCamera.createCamera();
 const world = SetupWorld.setupWorld(scene);
