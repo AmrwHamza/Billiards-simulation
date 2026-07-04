@@ -8,13 +8,12 @@ import { Rack } from "./setup/rack";
 import { CreatRenderer } from "./setup/renderer";
 import { MainCamera } from "./setup/camera";
 import { SetupWorld } from "./setup/world.ts";
-import { DataRecorder } from "./DataRecorder";
+
 //المشهد
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x202020);
 //////////////////////////
-// const axesHelper = new THREE.AxesHelper(1);
-// scene.add(axesHelper);
+
 //الكاميرا
 const camera = MainCamera.createCamera();
 const world = SetupWorld.setupWorld(scene);
@@ -22,24 +21,16 @@ const renderer = CreatRenderer.createRenderer(camera);
 const controller = new CameraController(camera, renderer.domElement);
 
 const balls: Ball[] = [];
-
 //الكرة البيضا
 const ball = new Ball(-1, -0, 0.028575, 0.17, 0);
 // const ball = new Ball(-1.3, -0, 0.028575, 0.17, 0);
 balls.push(ball);
 scene.add(ball.mesh);
-/////////////////////////////
-// Rack.createRack(scene, balls);
+Rack.createRack(scene, balls);
 //لوجة التحكم
-// const panel = new ControlPanel(ball, balls, world.cue);
-const recorder = new DataRecorder();
-
-const panel = new ControlPanel(ball, balls, world.cue, recorder);
+const panel = new ControlPanel(ball, balls, world.cue);
 /////////////////
 
-//الاسهم التوضيحية
-// const debugVisualizer = new PhysicsVisualizer(scene);
-////////////////
 
 let lastTime = performance.now();
 function animate(time: number) {
@@ -62,16 +53,9 @@ function animate(time: number) {
     }
   }
 
-console.log("Ball speed:", ball.velocity.length());
-
-  
- 
-
   controller.update();
-  panel.update(dt);
+  panel.update();
   renderer.render(scene, camera);
-
-  
   requestAnimationFrame(animate);
 }
 animate(lastTime);

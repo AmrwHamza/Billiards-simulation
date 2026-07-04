@@ -3,7 +3,7 @@ import * as THREE from "three";
 import { Ball } from "../environment/Ball";
 import { CueStick } from "../environment/Cue_Stick";
 import { Physics } from "../Physics/Physics";
-import type { DataRecorder } from "../DataRecorder";
+
 
 export class ControlPanel {
   private gui: GUI;
@@ -11,10 +11,6 @@ export class ControlPanel {
   private balls: Ball[];
   private cue: CueStick;
   private keysPressed: { [key: string]: boolean } = {};
-
-  private recorder: DataRecorder;///////
-private recording = false;
-private stopCounter = 0;
 
 
   private angleController: any;
@@ -30,7 +26,7 @@ private stopCounter = 0;
   private monitoringFolder: any;
   private monitoringValues: Map<number, { v: number; w: number }> = new Map();
 
- constructor(ball: Ball, balls: Ball[], cue: CueStick, recorder: DataRecorder) {
+ constructor(ball: Ball, balls: Ball[], cue: CueStick) {
     this.targetBall = ball;
     this.balls = balls;
     this.cue = cue;
@@ -38,7 +34,6 @@ private stopCounter = 0;
     this.gui = new GUI({ title: "لوحة التحكم" });
     this.gui.domElement.style.width = "400px";
 
-    this.recorder = recorder;//////////////
 
 
 
@@ -63,12 +58,6 @@ private stopCounter = 0;
 
     folder.add(this.config, "shoot").name("إطلاق");
 
-this.gui.add(
-  {
-    download: () => this.recorder.download(),
-  },
-  "download"
-).name("Download CSV");
 
     folder.open();
   }
@@ -130,7 +119,7 @@ this.gui.add(
     this.monitoringFolder.close();
   }
 
-  public update(dt: number) {////delete dt
+  public update() {////delete dt
     const speed = 0.012;
     const powerStep = 0.02;
 
@@ -164,28 +153,7 @@ this.gui.add(
     const angleRad = THREE.MathUtils.degToRad(this.config.angleDeg);
     this.cue.update(this.targetBall, angleRad, this.config.power);
 //////////////////
-if (!this.recording) return;
 
-const v = this.targetBall.velocity.length();
-const w = this.targetBall.angularVelocity.length();
-
-const isMoving = v > 0.01 || w > 0.01;
-
-// إذا في حركة → سجل طبيعي
-if (isMoving) {
-  this.stopCounter = 0;
-  this.recorder.record(dt, v, w);
-}
-// إذا توقفت → ابدأ عدّاد توقف
-else {
-  this.recorder.record(dt, v, w);
-
-    this.stopCounter++;
-
-    if (this.stopCounter > 30) {
-        this.recording = false;
-    }
-}
 /////////////////////////
 
     this.updateMonitoring();
@@ -208,8 +176,7 @@ private triggerShot() {
     // نطلب من الفيزياء تنفيذ العملية
     Physics.applyInitialShot(this.targetBall, angleRad, this.config.power);
 
-    this.recording = true;
-this.stopCounter = 0;
+  
     // المنطق الخاص بالواجهة (إخفاء العصا) يبقى هنا
     this.cue.hide();
     setTimeout(() => this.cue.show(), 4000);

@@ -43,7 +43,7 @@ private loadCafeModel() {
 
  
       this.mesh.add(model);
-      console.log("🚀 تم تحميل موديل الـ GLB الجديد بنجاح وبألوانه الأصلية!");
+      console.log("نجاح");
     },
     (xhr) => {
     
@@ -51,7 +51,7 @@ private loadCafeModel() {
     },
     (error) => {
    
-      console.error("❌ حدث خطأ أثناء تحميل ملف الـ GLB:", error);
+      console.error("خطاء في تحميل الموديل", error);
     }
   );
 }

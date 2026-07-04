@@ -18,13 +18,13 @@ export class Table {
     this.loader = new GLTFLoader();
 
     
-    const geometry = new THREE.PlaneGeometry(width, height);
-    const material = new THREE.MeshStandardMaterial({
-      color: 0x0a7a2f, 
-    });
-    const clothMesh = new THREE.Mesh(geometry, material);
-    clothMesh.receiveShadow = true;
-    clothMesh.rotation.x = -Math.PI / 2;
+    // const geometry = new THREE.PlaneGeometry(width, height);
+    // const material = new THREE.MeshStandardMaterial({
+    //   color: 0x0a7a2f, 
+    // });
+    // const clothMesh = new THREE.Mesh(geometry, material);
+    // clothMesh.receiveShadow = true;
+    // clothMesh.rotation.x = -Math.PI / 2;
     
     // نضيف الأخضر داخل الحاوية
     // this.mesh.add(clothMesh);
@@ -87,11 +87,11 @@ console.log("Mesh Name found:", child.name);
 
        
         this.mesh.add(model);
-        console.log("🎯 تم دمج الموديل ثلاثي الأبعاد مع نظام الطاولة!");
+        console.log("نجاح2");
       },
       undefined,
       (error) => {
-        console.error("خطأ أثناء تحميل موديل الطاولة:", error);
+        console.error("خطأ2", error);
       }
     );
   }
