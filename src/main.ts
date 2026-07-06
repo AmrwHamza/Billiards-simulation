@@ -33,10 +33,11 @@ const panel = new ControlPanel(ball, balls, world.cue);
 
 
 let lastTime = performance.now();
-function animate(time: number) {
-  const dt = (time - lastTime) / 1000;
-  lastTime = time;
 
+function animate(time: number) {
+  // const dt = (time - lastTime) / 1000;
+  // lastTime = time;
+const dt = 1 / 165;
   for (let i = balls.length - 1; i >= 0; i--) {
     const b = balls[i];
     b.update(dt);
