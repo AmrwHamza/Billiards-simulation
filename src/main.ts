@@ -23,7 +23,7 @@ const controller = new CameraController(camera, renderer.domElement);
 const balls: Ball[] = [];
 //الكرة البيضا
 const ball = new Ball(-1, -0, 0.028575, 0.17, 0);
-// const ball = new Ball(-1.3, -0, 0.028575, 0.17, 0);
+
 balls.push(ball);
 scene.add(ball.mesh);
 Rack.createRack(scene, balls);
