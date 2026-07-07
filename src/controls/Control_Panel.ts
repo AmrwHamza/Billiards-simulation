@@ -19,14 +19,15 @@ export class ControlPanel {
 
   private config = {
     angleDeg: 0,
-    power: 0,
+    velocity: 0,
     shoot: () => this.triggerShot(),
   };
 
   private monitoringFolder: any;
   private monitoringValues: Map<number, { v: number; w: number }> = new Map();
 
- constructor(ball: Ball, balls: Ball[], cue: CueStick) {
+ 
+  constructor(ball: Ball, balls: Ball[], cue: CueStick) {
     this.targetBall = ball;
     this.balls = balls;
     this.cue = cue;
@@ -53,7 +54,7 @@ export class ControlPanel {
       .name("الزاوية");
 
     this.velocityController = folder
-      .add(this.config, "power", 0, 13, 0.1)
+      .add(this.config, "velocity", 0, 13, 0.1)
       .name("السرعة");
 
     folder.add(this.config, "shoot").name("إطلاق");
@@ -121,7 +122,7 @@ export class ControlPanel {
 
   public update() {////delete dt
     const speed = 0.012;
-    const powerStep = 0.02;
+    const velocityStep = 0.02;
 
     let changed = false;
 
@@ -136,12 +137,12 @@ export class ControlPanel {
     }
 
     if (this.keysPressed["ArrowUp"]) {
-      this.config.power = Math.min(this.config.power + powerStep, 6);
+      this.config.velocity = Math.min(this.config.velocity + velocityStep, 6);
       changed = true;
     }
 
     if (this.keysPressed["ArrowDown"]) {
-      this.config.power = Math.max(this.config.power - powerStep, 0);
+      this.config.velocity = Math.max(this.config.velocity - velocityStep, 0);
       changed = true;
     }
 
@@ -151,10 +152,8 @@ export class ControlPanel {
     }
 
     const angleRad = THREE.MathUtils.degToRad(this.config.angleDeg);
-    this.cue.update(this.targetBall, angleRad, this.config.power);
-//////////////////
+    this.cue.update(this.targetBall, angleRad, this.config.velocity);
 
-/////////////////////////
 
     this.updateMonitoring();
   }
@@ -170,14 +169,13 @@ export class ControlPanel {
   }
 
 private triggerShot() {
-    // الواجهة مسؤولة فقط عن تحويل المدخلات إلى الصيغة المطلوبة (Radians)
     const angleRad = THREE.MathUtils.degToRad(this.config.angleDeg);
 
-    // نطلب من الفيزياء تنفيذ العملية
-    Physics.applyInitialShot(this.targetBall, angleRad, this.config.power);
+     
+    Physics.applyInitialShot(this.targetBall, angleRad, this.config.velocity);
 
   
-    // المنطق الخاص بالواجهة (إخفاء العصا) يبقى هنا
+    
     this.cue.hide();
     setTimeout(() => this.cue.show(), 4000);
 }

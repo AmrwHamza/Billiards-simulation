@@ -1,5 +1,4 @@
 import * as THREE from "three";
-
 import { Ball } from "./environment/Ball.ts";
 import { Physics } from "./Physics/Physics.ts";
 import { CameraController } from "./controls/CameraController";
@@ -9,27 +8,26 @@ import { CreatRenderer } from "./setup/renderer";
 import { MainCamera } from "./setup/camera";
 import { SetupWorld } from "./setup/world.ts";
 
-//المشهد
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x202020);
-//////////////////////////
 
-//الكاميرا
+
 const camera = MainCamera.createCamera();
 const world = SetupWorld.setupWorld(scene);
 const renderer = CreatRenderer.createRenderer(camera);
 const controller = new CameraController(camera, renderer.domElement);
 
 const balls: Ball[] = [];
-//الكرة البيضا
+
 const ball = new Ball(-1, -0, 0.028575, 0.17, 0);
 
 balls.push(ball);
 scene.add(ball.mesh);
 Rack.createRack(scene, balls);
-//لوجة التحكم
+
 const panel = new ControlPanel(ball, balls, world.cue);
-/////////////////
+
 
 
 let lastTime = performance.now();
@@ -38,7 +36,10 @@ function animate(time: number) {
   // const dt = (time - lastTime) / 1000;
   // lastTime = time;
 const dt = 1 / 165;
-  for (let i = balls.length - 1; i >= 0; i--) {
+
+  
+
+for (let i = balls.length - 1; i >= 0; i--) {
     const b = balls[i];
     b.update(dt);
 
