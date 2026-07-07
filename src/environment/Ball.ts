@@ -67,7 +67,7 @@ export class Ball {
 
   public update(dt: number): void {
     Physics.update(this, dt);
-    // this.updateRotation(dt);
+    
     this.syncMesh();
   }
 

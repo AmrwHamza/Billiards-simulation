@@ -19,7 +19,7 @@ export class CameraController {
 
   constructor(camera: THREE.PerspectiveCamera, dom: HTMLElement) {
     this.camera = camera;
-    // this.dom = dom;
+    
 
     this.orbit = new OrbitControls(camera, dom);
     this.orbit.enableDamping = true;

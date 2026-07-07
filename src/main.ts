@@ -8,10 +8,8 @@ import { CreatRenderer } from "./setup/renderer";
 import { MainCamera } from "./setup/camera";
 import { SetupWorld } from "./setup/world.ts";
 
-
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x202020);
-
 
 const camera = MainCamera.createCamera();
 const world = SetupWorld.setupWorld(scene);
@@ -28,18 +26,13 @@ Rack.createRack(scene, balls);
 
 const panel = new ControlPanel(ball, balls, world.cue);
 
-
-
 let lastTime = performance.now();
 
 function animate(time: number) {
-  // const dt = (time - lastTime) / 1000;
-  // lastTime = time;
-const dt = 1 / 165;
+ 
+  const dt = 1 / 165;
 
-  
-
-for (let i = balls.length - 1; i >= 0; i--) {
+  for (let i = balls.length - 1; i >= 0; i--) {
     const b = balls[i];
     b.update(dt);
 
